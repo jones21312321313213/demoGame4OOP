@@ -66,8 +66,8 @@ public class PlayerControl extends Component {
             }
         }
 
-//        entity.getTransformComponent().setScaleX(3);// temp rani duha since gamay kaayo orig sprite
-//        entity.getTransformComponent().setScaleY(3);// temp rani duha since gamay kaayo orig sprite
+        entity.getTransformComponent().setScaleX(3);
+        entity.getTransformComponent().setScaleY(3);
     }
 
     private boolean isMoving(){
@@ -84,14 +84,14 @@ public class PlayerControl extends Component {
             entity.getViewComponent().addChild(texture);
         }
         texture.loopAnimationChannel(animIdle);
-//        entity.getTransformComponent().setScaleX(3);// temp rani duha since gamay kaayo orig sprite
-//        entity.getTransformComponent().setScaleY(3);// temp rani duha since gamay kaayo orig sprite
+        entity.getTransformComponent().setScaleX(3);
+        entity.getTransformComponent().setScaleY(3);
     }
 
 
     public void up() {
         if (isOnGround()) {
-            physics.setVelocityY(-120);
+            physics.setVelocityY(-300);
             texture.loopAnimationChannel(animJump);
         }
     }
@@ -102,14 +102,14 @@ public class PlayerControl extends Component {
 
     public void left() {
         texture.setScaleX(-1);// flips the view of the entity
-        physics.setVelocityX(-50);
+        physics.setVelocityX(-100);
         texture.loopAnimationChannel(animWalk);
 
     }
 
     public void right() {
         texture.setScaleX(1);// flips the view of the entity
-        physics.setVelocityX(50);
+        physics.setVelocityX(100);
         texture.loopAnimationChannel(animWalk);
 
     }

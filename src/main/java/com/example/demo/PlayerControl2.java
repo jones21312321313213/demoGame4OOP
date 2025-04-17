@@ -71,8 +71,8 @@ public class PlayerControl2 extends Component {
                 texture.loopAnimationChannel(animIdle);
             }
         }
-//        entity.getTransformComponent().setScaleX(3);// temp rani duha since gamay kaayo orig sprite
-//        entity.getTransformComponent().setScaleY(3);// temp rani duha since gamay kaayo orig sprite
+        entity.getTransformComponent().setScaleX(3);// temp rani duha since gamay kaayo orig sprite
+        entity.getTransformComponent().setScaleY(3);// temp rani duha since gamay kaayo orig sprite
     }
 
 
@@ -91,14 +91,14 @@ public class PlayerControl2 extends Component {
             entity.getViewComponent().addChild(texture);
         }
         texture.loopAnimationChannel(animIdle);
-//        entity.getTransformComponent().setScaleX(3);// temp rani duha since gamay kaayo orig sprite
-//        entity.getTransformComponent().setScaleY(3);// temp rani duha since gamay kaayo orig sprite
+        entity.getTransformComponent().setScaleX(3);// temp rani duha since gamay kaayo orig sprite
+        entity.getTransformComponent().setScaleY(3);// temp rani duha since gamay kaayo orig sprite
     }
 
 
     public void P2up() {
         if (isOnGround()) {
-            physics.setVelocityY(-120); // Adjust the jump strength as needed
+            physics.setVelocityY(-300); // Adjust the jump strength as needed
             texture.loopAnimationChannel(animJump);
         }
     }
@@ -109,14 +109,14 @@ public class PlayerControl2 extends Component {
 
     public void P2left() {
         texture.setScaleX(1);// flips the view of the entity
-        physics.setVelocityX(-50);
+        physics.setVelocityX(-100);
         texture.loopAnimationChannel(animWalk);
 
     }
 
     public void P2right() {
         texture.setScaleX(-1);// flips the view of the entity
-        physics.setVelocityX(50);
+        physics.setVelocityX(100);
         texture.loopAnimationChannel(animWalk);
     }
 

@@ -3,16 +3,28 @@ package com.example.demo;
 
 import com.almasb.fxgl.app.GameApplication;
 import com.almasb.fxgl.app.GameSettings;
+import com.almasb.fxgl.app.scene.FXGLMenu;
+import com.almasb.fxgl.app.scene.MenuType;
+import com.almasb.fxgl.app.scene.SceneFactory;
 import com.almasb.fxgl.core.math.FXGLMath;
+import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.entity.level.Level;
 import com.almasb.fxgl.entity.level.tiled.TMXLevelLoader;
 import com.almasb.fxgl.input.UserAction;
+import com.almasb.fxgl.particle.ParticleEmitter;
+import com.almasb.fxgl.particle.ParticleSystem;
 import com.almasb.fxgl.ui.FXGLCheckBox;
+import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.effect.BlendMode;
 import javafx.scene.input.KeyCode;
+import javafx.scene.paint.Color;
+import javafx.stage.Screen;
 import javafx.util.Duration;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 import static com.almasb.fxgl.dsl.FXGL.*;
@@ -20,14 +32,17 @@ import static com.almasb.fxgl.dsl.FXGL.*;
 public class HelloApplication extends GameApplication {
     @Override
     protected void initSettings(GameSettings settings) {
-        settings.setWidth(1200);
-        settings.setHeight(240);
-        settings.setTitle("OOP GAME");
-        settings.setVersion("0.1");
-        settings.setIntroEnabled(true);// i true later
+        settings.setWidth(1984);
+        settings.setHeight(1088);
+        settings.setTitle("Stictactics");
+//        settings.setVersion("0.1");
+        settings.setIntroEnabled(false);// i true later
         settings.setGameMenuEnabled(false);
         settings.setMainMenuEnabled(true);// i true later
         settings.setCloseConfirmation(true);
+        //settings.setFullScreenAllowed(true);
+       settings.setSceneFactory(new MySceneFactory());
+
     }
 
     private Entity player;
@@ -100,17 +115,14 @@ public class HelloApplication extends GameApplication {
 
     @Override
     protected void initPhysics() {
-        getPhysicsWorld().setGravity(0, 120); // Adjust the Y value as needed
+        getPhysicsWorld().setGravity(0, 120); 
     }
 
     @Override
     protected void initGame(){
         getGameWorld().addEntityFactory(new SimpleFactory());
-      Level level = getAssetLoader().loadLevel("tmx/bg.tmx", new TMXLevelLoader());
+      Level level = getAssetLoader().loadLevel("tmx/idkbackground.tmx", new TMXLevelLoader());
       getGameWorld().setLevel(level);
-
-
-
 
 
       player = getGameWorld().spawn("player",100,100);
