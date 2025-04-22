@@ -30,10 +30,13 @@ import java.util.HashMap;
 import static com.almasb.fxgl.dsl.FXGL.*;
 
 public class HelloApplication extends GameApplication {
+
+    
+
     @Override
     protected void initSettings(GameSettings settings) {
-        settings.setWidth(1984);
-        settings.setHeight(1088);
+        settings.setWidth(1920);
+        settings.setHeight(1080);
         settings.setTitle("Stictactics");
 //        settings.setVersion("0.1");
         settings.setIntroEnabled(false);// i true later
@@ -41,7 +44,7 @@ public class HelloApplication extends GameApplication {
         settings.setMainMenuEnabled(true);// i true later
         settings.setCloseConfirmation(true);
         //settings.setFullScreenAllowed(true);
-       settings.setSceneFactory(new MySceneFactory());
+        settings.setSceneFactory(new MySceneFactory());
 
     }
 

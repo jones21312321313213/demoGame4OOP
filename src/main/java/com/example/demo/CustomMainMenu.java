@@ -24,11 +24,16 @@ public class CustomMainMenu extends FXGLMenu {
         super(type);
 
         // Create and add background firss.d,s.d,
-        var bg = FXGL.texture("mainmenu.png");
-        bg.setFitWidth(FXGL.getAppWidth());
-        bg.setFitHeight(FXGL.getAppHeight());
-        getContentRoot().getChildren().add(bg);
+        String videoPath = getClass().getResource("/assets/textures/background-intro.mp4").toExternalForm();
+        Media media = new Media(videoPath);
+        MediaPlayer mediaPlayer = new MediaPlayer(media);
+        mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE); // loop the video
+        mediaPlayer.setAutoPlay(true);
+        MediaView mediaView = new MediaView(mediaPlayer);
+        mediaView.setFitWidth(FXGL.getAppWidth());
+        mediaView.setFitHeight(FXGL.getAppHeight());
 
+        getContentRoot().getChildren().add(mediaView);
         // Then overlay UI elements
         VBox content = new VBox(15);
         content.setTranslateX(900);
