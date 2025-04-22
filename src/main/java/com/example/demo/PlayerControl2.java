@@ -98,7 +98,7 @@ public class PlayerControl2 extends Component {
 
     public void P2up() {
         if (isOnGround()) {
-            physics.setVelocityY(-300); // Adjust the jump strength as needed
+            physics.setVelocityY(-5); // Adjust the jump strength as needed
             texture.loopAnimationChannel(animJump);
         }
     }
