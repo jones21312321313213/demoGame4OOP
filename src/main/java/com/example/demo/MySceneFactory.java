@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import com.almasb.fxgl.app.scene.FXGLMenu;
+import com.almasb.fxgl.app.scene.IntroScene;
 import com.almasb.fxgl.app.scene.SceneFactory;
 import com.almasb.fxgl.app.scene.MenuType;
 import org.jetbrains.annotations.NotNull;
@@ -17,5 +18,11 @@ public class MySceneFactory extends SceneFactory {
     @Override
     public FXGLMenu newGameMenu() {
         return new CustomMainMenu(MenuType.GAME_MENU); // optional if you want a game menu too
+    }
+
+    @NotNull
+    @Override
+    public IntroScene newIntro() {
+        return new CustomIntro(); // Your custom intro scene
     }
 }

@@ -19,12 +19,12 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 public class CustomMainMenu extends FXGLMenu {
 
-
     public CustomMainMenu(@NotNull MenuType type) {
         super(type);
 
         // Create and add background firss.d,s.d,
         String videoPath = getClass().getResource("/assets/textures/background-intro.mp4").toExternalForm();
+
         Media media = new Media(videoPath);
         MediaPlayer mediaPlayer = new MediaPlayer(media);
         mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE); // loop the video
@@ -34,10 +34,7 @@ public class CustomMainMenu extends FXGLMenu {
         mediaView.setFitHeight(FXGL.getAppHeight());
 
         getContentRoot().getChildren().add(mediaView);
-        // Then overlay UI elements
-        VBox content = new VBox(15);
-        content.setTranslateX(900);
-        content.setTranslateY(600);
+
 
         Button playButton = new Button("Play");
 //        playButton.setStyle("-fx-background-color: yellow; -fx-background-radius: 50; -fx-font-size: 24px;");

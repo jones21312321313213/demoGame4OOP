@@ -17,9 +17,14 @@ import com.almasb.fxgl.particle.ParticleSystem;
 import com.almasb.fxgl.ui.FXGLCheckBox;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.effect.BlendMode;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +36,19 @@ import static com.almasb.fxgl.dsl.FXGL.*;
 
 public class HelloApplication extends GameApplication {
 
-    
+//    @Override
+//    protected void initUI() {
+//        Label label = new Label("Hello, FXGL!");
+//        label.setFont(Font.font(20.0));
+//        FXGL.addUINode(label, 350.0, 290.0);
+//    }
+
+
+    @Override
+    protected void onPreInit(){
+        FXGL.getAssetLoader().loadTexture("/assets/textures/background-intro.mp4");
+    }
+
 
     @Override
     protected void initSettings(GameSettings settings) {
@@ -39,13 +56,12 @@ public class HelloApplication extends GameApplication {
         settings.setHeight(1080);
         settings.setTitle("Stictactics");
 //        settings.setVersion("0.1");
-        settings.setIntroEnabled(false);// i true later
+        settings.setIntroEnabled(true);// i true later
         settings.setGameMenuEnabled(false);
-        settings.setMainMenuEnabled(true);// i true later
+        settings.setMainMenuEnabled(true);
         settings.setCloseConfirmation(true);
         //settings.setFullScreenAllowed(true);
         settings.setSceneFactory(new MySceneFactory());
-
     }
 
     private Entity player;
