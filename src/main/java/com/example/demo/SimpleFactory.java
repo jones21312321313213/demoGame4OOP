@@ -16,6 +16,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 
+
 public class SimpleFactory implements EntityFactory {
 
     @Spawns("platform")
@@ -38,11 +39,14 @@ public class SimpleFactory implements EntityFactory {
 //        var width = data.<Integer>get("width");
 //        var height = data.<Integer>get("height");
 
+
         return FXGL.entityBuilder(data)
+                .type(GameEntityType.PLAYER)
                 .bbox(new HitBox(BoundingShape.box(32,42)))
                 //.viewWithBBox(new Rectangle(30,30,Color.BLUE))
                 //.with(new CollidableComponent(true))
                 .with(physics)
+                .with(new HealthComponent(100))
                 .with(new PlayerControl())
                 .build();
     }
@@ -56,6 +60,8 @@ public class SimpleFactory implements EntityFactory {
 //        var height = data.<Integer>get("height");
 
         return FXGL.entityBuilder(data)
+                .type(GameEntityType.PLAYER2)
+                .with(new HealthComponent(100))
                 .bbox(new HitBox(BoundingShape.box(32,42)))
                 //.viewWithBBox(new Rectangle(30,30,Color.BLUE))
                 .with(physics)

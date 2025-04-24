@@ -19,6 +19,7 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
@@ -42,6 +43,8 @@ public class HelloApplication extends GameApplication {
 //        label.setFont(Font.font(20.0));
 //        FXGL.addUINode(label, 350.0, 290.0);
 //    }
+private ProgressBar healthBar2;
+    private ProgressBar healthBar;
 
 
     @Override
@@ -134,7 +137,7 @@ public class HelloApplication extends GameApplication {
 
     @Override
     protected void initPhysics() {
-        getPhysicsWorld().setGravity(0, 120); 
+        getPhysicsWorld().setGravity(0, 120);
     }
 
     @Override
@@ -155,7 +158,33 @@ public class HelloApplication extends GameApplication {
 //                    new Rectangle2D(0,0, getAppWidth(), getAppHeight())
 //            ));
 //        }, Duration.seconds(1));
+
+        healthBar = new ProgressBar(1.0);
+        healthBar.setPrefWidth(200);
+        healthBar.setLayoutX(50);
+        healthBar.setLayoutY(50);
+        getGameScene().addUINode(healthBar);
+
+        healthBar2 = new ProgressBar(1.0);
+        healthBar2.setPrefWidth(200);
+        healthBar2.setLayoutX(1600);
+        healthBar2.setLayoutY(50);
+        getGameScene().addUINode(healthBar2);
+
+        player.getComponent(HealthComponent.class).setHealthChangeListener(this::updateHealthBar);
+        updateHealthBar(player.getComponent(HealthComponent.class).getHealth());
+
+        player2.getComponent(HealthComponent.class).setHealthChangeListener(this::updateHealthBarPlayer2);
+        updateHealthBarPlayer2(player2.getComponent(HealthComponent.class).getHealth());
     }
+    private void updateHealthBar(int newHealth) {
+        healthBar.setProgress(newHealth / 100.0);
+    }
+
+    private void updateHealthBarPlayer2(int newHealth) {
+        healthBar2.setProgress(newHealth / 100.0);
+    }
+
     public static void main(String[] args) {
         launch(args);
     }

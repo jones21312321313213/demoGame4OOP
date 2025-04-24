@@ -25,6 +25,8 @@ public class PlayerControl2 extends Component {
     private boolean punching = false;
     private double punchTimer = 0;
     private Duration punchDuration = Duration.seconds(1); // Keep this consistent
+    private boolean damageApplied = false;
+
     public PlayerControl2(){
         animIdle = new AnimationChannel(FXGL.getAssetLoader().loadImage("idle_punk.png"),
                 4, 384/4, 63,
@@ -51,6 +53,17 @@ public class PlayerControl2 extends Component {
     public void onUpdate(double tpf) {
         if (punching) {
             punchTimer -= tpf;
+
+            if (!damageApplied) {
+                Entity player1 = FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER).get(0);
+
+                if (getEntity().getBoundingBoxComponent().isCollidingWith(player1.getBoundingBoxComponent())) {
+                    player1.getComponent(HealthComponent.class).takeDamage(10);
+                    System.out.println("Player 1 took damage! " + player1.getComponent(HealthComponent.class).getHealth());
+                    damageApplied = true; // Prevent repeated damage during the same punch
+                }
+            }
+
             if (punchTimer <= 0) {
                 punching = false;
             } else {
@@ -121,9 +134,12 @@ public class PlayerControl2 extends Component {
     }
 
     public void P2punch() {
-        punching = true;
-        punchTimer = punchDuration.toSeconds(); // Punch duration in seconds
-        texture.playAnimationChannel(animPunch);
+        if (!punching) {
+            punching = true;
+            punchTimer = punchDuration.toSeconds();
+            damageApplied = false;
+            texture.playAnimationChannel(animPunch);
+        }
     }
 
 }

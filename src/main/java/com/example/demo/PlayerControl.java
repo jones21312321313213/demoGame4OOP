@@ -20,9 +20,11 @@ public class PlayerControl extends Component {
     private boolean punching = false;
     private double punchTimer = 0;
     private Duration punchDuration = Duration.seconds(1); // Keep this consistent
+    private boolean damageApplied = false;
+
     public PlayerControl(){
-        animIdle = new AnimationChannel(FXGL.getAssetLoader().loadImage("idk.png"),
-                4,384/4,63, Duration.seconds(1),
+        animIdle = new AnimationChannel(FXGL.getAssetLoader().loadImage("p1_idle.png"),
+                8,384/4,63, Duration.seconds(1),
                 0,3);
 
         animWalk = new AnimationChannel(FXGL.getAssetLoader().loadImage("walking.png"),
@@ -45,6 +47,17 @@ public class PlayerControl extends Component {
     public void onUpdate(double tpf) {//tpf is the time passed since the last frame update
         if (punching) {
             punchTimer -= tpf;
+
+            if (!damageApplied) {
+                Entity player2 = FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER2).get(0);
+
+                if (getEntity().getBoundingBoxComponent().isCollidingWith(player2.getBoundingBoxComponent())) {
+                    player2.getComponent(HealthComponent.class).takeDamage(10);
+                    System.out.println("Player 2 took damage! " + player2.getComponent(HealthComponent.class).getHealth());
+                    damageApplied = true;
+                }
+            }
+
             if (punchTimer <= 0) {
                 punching = false;
             } else {
@@ -115,8 +128,11 @@ public class PlayerControl extends Component {
     }
 
     public void punch() {
-        punching = true;
-        punchTimer = punchDuration.toSeconds(); // Punch duration in seconds
-        texture.playAnimationChannel(animPunch);
+        if (!punching) {
+            punching = true;
+            punchTimer = punchDuration.toSeconds();
+            damageApplied = false;
+            texture.playAnimationChannel(animPunch);
+        }
     }
 }
