@@ -19,6 +19,7 @@ import com.almasb.fxgl.ui.FXGLCheckBox;
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -30,7 +31,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Screen;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
@@ -41,13 +44,6 @@ import java.util.HashMap;
 import static com.almasb.fxgl.dsl.FXGL.*;
 
 public class HelloApplication extends GameApplication {
-
-//    @Override
-//    protected void initUI() {
-//        Label label = new Label("Hello, FXGL!");
-//        label.setFont(Font.font(20.0));
-//        FXGL.addUINode(label, 350.0, 290.0);
-//    }
     private ProgressBar healthBar2;
     private ProgressBar healthBar;
     private int p1Score = 0;
@@ -57,18 +53,28 @@ public class HelloApplication extends GameApplication {
 
     private Arc cooldownArc;
     private Text cooldownText;
-    private double enhancedPunchCooldownTime = 5.0; // 5 seconds cooldown
-    private double remainingCooldownTime = 0.0; // Time left for cooldown
+    private double enhancedPunchCooldownTime = 5.0;
+    private double remainingCooldownTime = 0.0;
     private boolean isCooldownActive = false;
 
+    private Text ultAvailableText;
+    private boolean isUltAvailableForP1 = false;
+    private boolean P1Ult = false;
 
+    private boolean isUltAvailableForP2 = false;
+    private Text ultAvailableTextP2;
+    private boolean P2Ult = false;
 
+    private Arc cooldownArcP2;
+    private Text cooldownTextP2;
+    private double enhancedPunchCooldownTimeP2 = 5.0;
+    private double remainingCooldownTimeP2 = 0.0;
+    private boolean isP2CooldownActive = false;
 
     @Override
     protected void onPreInit(){
         FXGL.getAssetLoader().loadTexture("/assets/textures/background-intro.mp4");
     }
-
 
     @Override
     protected void initSettings(GameSettings settings) {
@@ -83,7 +89,6 @@ public class HelloApplication extends GameApplication {
         //settings.setFullScreenAllowed(true);
         settings.setSceneFactory(new MySceneFactory());
     }
-
     private Entity player;
     private Entity player2;
     @Override
@@ -126,8 +131,19 @@ public class HelloApplication extends GameApplication {
             }
         }, KeyCode.E);
 
-        // temp
+        getInput().addAction(new UserAction("P1Ult") {
+            @Override
+            protected void onAction() {
+                if (isUltAvailableForP1 || !P1Ult) {
+                    player.getComponent(PlayerControl.class).ultAttack();
+                    isUltAvailableForP1 = false;
+                    ultAvailableText.setVisible(false);
+                    P1Ult = true;
+                }
+            }
+        }, KeyCode.Q);
 
+        //PLAYER 2
         getInput().addAction(new UserAction("P2Left"){
             @Override
             protected void onAction(){
@@ -156,10 +172,28 @@ public class HelloApplication extends GameApplication {
             }
         },KeyCode.H);
 
-//        onKeyDown(KeyCode.F, () -> {
-//            System.out.println("hid");
-//            getNotificationService().pushNotification("Hello world ");
-//        });
+        getInput().addAction(new UserAction("P2EnhancedPunch") {
+            @Override
+            protected void onAction() {
+                if (!isP2CooldownActive) {
+                    player2.getComponent(PlayerControl2.class).P2enhancedPunch();
+                    startP2EnhancedPunchCooldown();
+                }
+            }
+        }, KeyCode.U);
+
+        getInput().addAction(new UserAction("P2Ult") {
+            @Override
+            protected void onAction() {
+                if (isUltAvailableForP2 || !P2Ult) {
+                    player2.getComponent(PlayerControl2.class).P2ultAttack();
+                    isUltAvailableForP2 = false;
+                    ultAvailableTextP2.setVisible(false);
+                    P2Ult = true;
+                }
+            }
+        }, KeyCode.O);
+
     }
 
     @Override
@@ -177,104 +211,148 @@ public class HelloApplication extends GameApplication {
       player = getGameWorld().spawn("player",100,100);
       player2 = getGameWorld().spawn("player2",1000,100);
 
-//        run(() -> {
-//            spawn("ally", FXGLMath.randomPoint(
-//               new Rectangle2D(0,0, getAppWidth(), getAppHeight())
-//            ));
-//            spawn("enemy", FXGLMath.randomPoint(
-//                    new Rectangle2D(0,0, getAppWidth(), getAppHeight())
-//            ));
-//        }, Duration.seconds(1));
+      healthBar = new ProgressBar(1.0);
+      healthBar.setPrefWidth(500);
+      healthBar.setPrefHeight(50);
+      healthBar.setLayoutX(50);
+      healthBar.setLayoutY(50);
+      healthBar.setStyle("-fx-accent: green;");
+      getGameScene().addUINode(healthBar);
 
-        healthBar = new ProgressBar(1.0);
-        healthBar.setPrefWidth(200);
-        healthBar.setLayoutX(50);
-        healthBar.setLayoutY(50);
-        getGameScene().addUINode(healthBar);
+      healthBar2 = new ProgressBar(1.0);
+      healthBar2.setPrefWidth(500);
+      healthBar2.setPrefHeight(50);
+      healthBar2.setLayoutX(1400);
+      healthBar2.setLayoutY(50);
+      healthBar2.setStyle("-fx-accent: green;");
+      getGameScene().addUINode(healthBar2);
 
-        healthBar2 = new ProgressBar(1.0);
-        healthBar2.setPrefWidth(200);
-        healthBar2.setLayoutX(1600);
-        healthBar2.setLayoutY(50);
-        getGameScene().addUINode(healthBar2);
+      cooldownArc = new Arc(100, 70, 50, 50, 90, 0); // X, Y, radiusX, radiusY, startAngle, length
+      cooldownArc.setType(ArcType.ROUND);
+      cooldownArc.setFill(Color.BLACK);
+      cooldownArc.setStroke(Color.BLACK);
+      cooldownArc.setStrokeWidth(10);
 
+      cooldownText = new Text(String.format("%.0f", remainingCooldownTime));
+      cooldownText.setFont(Font.font(24));
+      cooldownText.setFill(Color.RED);
+      cooldownText.setX(100 - cooldownText.getLayoutBounds().getWidth() / 2);
+      cooldownText.setY(100 + cooldownText.getLayoutBounds().getHeight() / 2);
 
+      cooldownArc.setLayoutX(50);
+      cooldownArc.setLayoutY(150);
+      cooldownText.setLayoutX(50);
+      cooldownText.setLayoutY(110);
 
-        cooldownArc = new Arc(100, 100, 50, 50, 90, 0); // X, Y, radiusX, radiusY, startAngle, length
-        cooldownArc.setType(ArcType.ROUND);
-        cooldownArc.setFill(Color.GREEN);
-        cooldownArc.setStroke(Color.GREEN);
-        cooldownArc.setStrokeWidth(10);
+      getGameScene().addUINode(cooldownArc);
+      getGameScene().addUINode(cooldownText);
 
-        cooldownText = new Text(String.format("%.0f", remainingCooldownTime));
-        cooldownText.setFont(Font.font(24));
-        cooldownText.setFill(Color.BLACK);
+      p1Star = new HBox(10);
+      p1Star.setLayoutX(600);
+      p1Star.setLayoutY(50);
+      p1Star.setStyle("-fx-background-color: rgba(0, 0, 0, 0.5); -fx-pref-width: 200px; -fx-pref-height: 50px;");
+      p1Star.setMinWidth(200);
+      p1Star.setMinHeight(100);
+      getGameScene().addUINode(p1Star);
 
-        cooldownText.setX(100 - cooldownText.getLayoutBounds().getWidth() / 2);
-        cooldownText.setY(100 + cooldownText.getLayoutBounds().getHeight() / 2);
+      p2Star = new HBox(10);
+      p2Star.setAlignment(Pos.BASELINE_RIGHT);
+      p2Star.setLayoutX(1150);
+      p2Star.setLayoutY(50);
+      p2Star.setMinWidth(200);
+      p2Star.setMinHeight(100);
+      p2Star.setStyle("-fx-background-color: rgba(255, 0, 0, 0.5); -fx-pref-width: 200px; -fx-pref-height: 50px;");
+      getGameScene().addUINode(p2Star);
 
-        getGameScene().addUINode(cooldownArc);
-        getGameScene().addUINode(cooldownText);
+      ultAvailableText = new Text("ULT Available \nPress Q!");
+      ultAvailableText.setFont(Font.font("System",FontWeight.BOLD,45));
+      ultAvailableText.setFill(Color.YELLOW);
+      ultAvailableText.setLayoutX(70);
+      ultAvailableText.setLayoutY(400);
+      ultAvailableText.setVisible(false);
+      getGameScene().addUINode(ultAvailableText);
 
-        cooldownArc.setLayoutX(50);
-        cooldownArc.setLayoutY(150);
-        cooldownText.setLayoutX(50);
-        cooldownText.setLayoutY(150);
+      ultAvailableTextP2 = new Text("ULT Available \nPress O!");
+      ultAvailableTextP2.setFont(Font.font("System",FontWeight.BOLD,45));
+      ultAvailableTextP2.setFill(Color.YELLOW);
+      ultAvailableTextP2.setLayoutX(1550);
+      ultAvailableTextP2.setLayoutY(400);
+      ultAvailableTextP2.setVisible(false);
+        ultAvailableTextP2.setTextAlignment(TextAlignment.LEFT);
+      getGameScene().addUINode(ultAvailableTextP2);
 
+      cooldownArcP2 = new Arc(125, 70, 50, 50, 90, 0);
+      cooldownArcP2.setType(ArcType.ROUND);
+      cooldownArcP2.setFill(Color.RED);
+      cooldownArcP2.setStroke(Color.RED);
+      cooldownArcP2.setStrokeWidth(10);
 
+      cooldownTextP2 = new Text(String.format("%.0f", remainingCooldownTimeP2));
+      cooldownTextP2.setFont(Font.font(24));
+      cooldownTextP2.setFill(Color.BLACK);
 
-        p1Star = new HBox(10);
-        p1Star.setLayoutX(300);
-        p1Star.setLayoutY(300);
-        p1Star.setStyle("-fx-background-color: rgba(0, 255, 0, 0.5); -fx-pref-width: 200px; -fx-pref-height: 50px;");
-        p1Star.setMinWidth(200);
-        p1Star.setMinHeight(100);
-        getGameScene().addUINode(p1Star);
+      cooldownTextP2.setX(100 - cooldownTextP2.getLayoutBounds().getWidth() / 2);
+      cooldownTextP2.setY(100 + cooldownTextP2.getLayoutBounds().getHeight() / 2);
 
-        p2Star = new HBox(10);
-        p2Star.setLayoutX(300);
-        p2Star.setLayoutY(400);
-        p2Star.setMinWidth(200);
-        p2Star.setMinHeight(100);
-        p2Star.setStyle("-fx-background-color: rgba(255, 0, 0, 0.5); -fx-pref-width: 200px; -fx-pref-height: 50px;");
-        getGameScene().addUINode(p2Star);
+      cooldownArcP2.setLayoutX(1600);
+      cooldownArcP2.setLayoutY(150);
+      cooldownTextP2.setLayoutX(1625);
+      cooldownTextP2.setLayoutY(110);
 
-        player.getComponent(HealthComponent.class).setDeathListener(this::onPlayerDied);
-        player2.getComponent(HealthComponent.class).setDeathListener(this::onPlayerDied);
+      getGameScene().addUINode(cooldownArcP2);
+      getGameScene().addUINode(cooldownTextP2);
 
-        player.getComponent(HealthComponent.class).setHealthChangeListener(this::updateHealthBar);
+      player.getComponent(HealthComponent.class).setDeathListener(this::onPlayerDied);
+      player2.getComponent(HealthComponent.class).setDeathListener(this::onPlayerDied);
+
+      player.getComponent(HealthComponent.class).setHealthChangeListener(this::updateHealthBar);
         updateHealthBar(player.getComponent(HealthComponent.class).getHealth());
 
-        player2.getComponent(HealthComponent.class).setHealthChangeListener(this::updateHealthBarPlayer2);
+      player2.getComponent(HealthComponent.class).setHealthChangeListener(this::updateHealthBarPlayer2);
         updateHealthBarPlayer2(player2.getComponent(HealthComponent.class).getHealth());
 
-        for (int i = 0; i < p1Score; i++) {
-            addStar(p1Star);
-        }
-
-        for (int i = 0; i < p2Score; i++) {
-            addStar(p2Star);
-        }
-
-        p1Star.layout();
-        p2Star.layout();
-
-        p1Star.requestLayout();
-        p2Star.requestLayout();
+      for (int i = 0; i < p1Score; i++) {
+          addStar(p1Star);
+      }
+      for (int i = 0; i < p2Score; i++) {
+          addStar(p2Star);
+      }
+      p1Star.layout();
+      p2Star.layout();
+      p1Star.requestLayout();
+      p2Star.requestLayout();
     }
     private void updateHealthBar(int newHealth) {
         healthBar.setProgress(newHealth / 100.0);
+        if (newHealth <= 50) {
+            isUltAvailableForP2 = true;
+            ultAvailableTextP2.setVisible(true);
+            System.out.println("ULT is now available for Player 2.");
+        } else {
+            isUltAvailableForP2 = false;
+            ultAvailableTextP2.setVisible(false);
+        }
     }
 
     private void updateHealthBarPlayer2(int newHealth) {
+        System.out.println("Player 2 health changed: " + newHealth);
+        if (newHealth <= 50) {
+            isUltAvailableForP1 = true;
+            ultAvailableText.setVisible(true);
+            System.out.println("ULT is now available for Player 1.");
+        } else {
+            isUltAvailableForP1 = false;
+            ultAvailableText.setVisible(false);
+            System.out.println("ULT is not available for Player 1.");
+        }
         healthBar2.setProgress(newHealth / 100.0);
     }
 
     private void onPlayerDied(GameEntityType deadPlayerType) {
         if (deadPlayerType == GameEntityType.PLAYER) {
-            p2Score++; // Player 2 wins a round
+            p2Score++;
         } else if (deadPlayerType == GameEntityType.PLAYER2) {
-            p1Score++; // Player 1 wins a round
+            p1Score++;
         }
 
         if (p1Score >= 3) {
@@ -357,17 +435,15 @@ public class HelloApplication extends GameApplication {
         if (p2Score == 0) {
             addStar(p2Star);
         }
-
+        isCooldownActive = false;
+        isP2CooldownActive = false;
         p1Star.layout();
         p2Star.layout();
-
         p1Star.requestLayout();
         p2Star.requestLayout();
-
         FXGL.getGameController().resumeEngine();
         FXGL.getGameController().startNewGame();
     }
-
     private void restartMatch() {
         p1Score = 0;
         p2Score = 0;
@@ -378,7 +454,7 @@ public class HelloApplication extends GameApplication {
     private void addStar(HBox starBox) {
         System.out.println("Adding star to " + starBox);  // Debugging line
 
-        javafx.scene.shape.Circle circle = new javafx.scene.shape.Circle(12);
+        javafx.scene.shape.Circle circle = new javafx.scene.shape.Circle(25);
         circle.setFill(Color.YELLOW);
 
         Platform.runLater(() -> {
@@ -390,7 +466,6 @@ public class HelloApplication extends GameApplication {
             System.out.println("Star added: " + circle);
         });
     }
-
     private void startEnhancedPunchCooldown() {
         isCooldownActive = true;
         remainingCooldownTime = enhancedPunchCooldownTime;
@@ -405,35 +480,62 @@ public class HelloApplication extends GameApplication {
 
         getGameTimer().runAtInterval(() -> {
             if (remainingCooldownTime > 0) {
-                remainingCooldownTime -= 1.0; 
-
-                // Update the arc length based on the remaining cooldown time
+                remainingCooldownTime -= 1.0;
                 double progress = remainingCooldownTime / enhancedPunchCooldownTime;
-                cooldownArc.setLength(360 * progress); // Set arc length to show progress
-
-                // Update the text to show the remaining cooldown time
+                cooldownArc.setLength(360 * progress);
                 cooldownText.setText(String.format("%.0f", remainingCooldownTime));
 
-                // Recenter the text in case the text size changes
                 cooldownText.setX(100 - cooldownText.getLayoutBounds().getWidth() / 2);
                 cooldownText.setY(100 + cooldownText.getLayoutBounds().getHeight() / 2);
             }
 
-            // Once cooldown is finished, reset the cooldown
             if (remainingCooldownTime <= 0) {
-                isCooldownActive = false; // Reset cooldown state
+                isCooldownActive = false;
             }
-        }, Duration.seconds(1)); // Update every second
+        }, Duration.seconds(1));
     }
 
 
+    private void startP2EnhancedPunchCooldown() {
+        isP2CooldownActive = true;
+        remainingCooldownTimeP2 = enhancedPunchCooldownTimeP2;
+
+        Timeline timeline = new Timeline(
+                new KeyFrame(Duration.seconds(enhancedPunchCooldownTimeP2),
+                        new KeyValue(cooldownArcP2.lengthProperty(), 360)
+                )
+        );
+        timeline.setCycleCount(1);
+        timeline.play();
+
+        getGameTimer().runAtInterval(() -> {
+            if (remainingCooldownTimeP2 > 0) {
+                remainingCooldownTimeP2 -= 1.0;
+                double progress = remainingCooldownTimeP2 / enhancedPunchCooldownTimeP2;
+                cooldownArcP2.setLength(360 * progress);
+
+                cooldownTextP2.setText(String.format("%.0f", remainingCooldownTimeP2));
+            } else {
+                isP2CooldownActive = false;
+                cooldownArcP2.setLength(0);
+                cooldownTextP2.setText("");
+            }
+        }, Duration.seconds(1));
+    }
 
 
-
-
-
-
-
+    private void onPlayer2HealthChanged(int newHealth) {
+        System.out.println("Player 2 health changed: " + newHealth);
+        if (newHealth <= 50) {
+            isUltAvailableForP1 = true;
+            ultAvailableText.setVisible(true);
+            System.out.println("ULT is now available for Player 1.");
+        } else {
+            isUltAvailableForP1 = false;
+            ultAvailableText.setVisible(false);
+            System.out.println("ULT is not available for Player 1.");
+        }
+    }
     public static void main(String[] args) {
         launch(args);
     }

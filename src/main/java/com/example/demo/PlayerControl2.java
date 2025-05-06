@@ -20,31 +20,50 @@ public class PlayerControl2 extends Component {
     private PhysicsComponent physics;
     private double speed = 0;
     private AnimatedTexture texture;
-    private AnimationChannel animIdle,animWalk,animJump,animPunch;
+    private AnimationChannel animIdle,animWalk,animJump,animPunch, animEnhancedAttack,animUlt;
 
     private boolean punching = false;
     private double punchTimer = 0;
+    private boolean enhancedPunching = false;
+    private double enhancedPunchTimer = 0;
+    private Duration enhancedPunchCooldown = Duration.seconds(3);
+
+    private int enhancedPunchDamage = 15;
+
+
     private Duration punchDuration = Duration.seconds(1); // Keep this consistent
     private boolean damageApplied = false;
 
+    private boolean ultActive = false;
+    private double ultDuration = 2;
+    private double ultTimer = 0;
+
     public PlayerControl2(){
-        animIdle = new AnimationChannel(FXGL.getAssetLoader().loadImage("idle_punk.png"),
-                4, 384/4, 63,
-                Duration.seconds(1),
-                0, 3);
+        animIdle = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_idle_P2.png"),
+                8,1320/8,192, Duration.seconds(1),
+                0,7);
 
-        animWalk = new AnimationChannel(FXGL.getAssetLoader().loadImage("walk_punk.png"),
-                4, 384/4, 63,
-                Duration.seconds(1),
-                0, 3);
+        animWalk = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_walk_P2.png"),
+                8,1280/8,192, Duration.seconds(1),
+                0,7);
+        animEnhancedAttack = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_attack_enhanced_p2.png"),
+                8,1320/8,192, Duration.seconds(1),
+                0,7);
 
-        animJump = new AnimationChannel(FXGL.getAssetLoader().loadImage("jump.png"),
-                4,384/4,63, Duration.seconds(1),
+        animJump = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_jump_P2.png"),
+                5,825/5,192, Duration.seconds(1),
+                0,2);
+        // How to know framesPerRow? count how many sprites are there in the png
+        // in walking.png there are 10 and divide that value to the width
+
+
+        animPunch = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_attack_P2.png"),
+                8,1320/8,192, Duration.seconds(1),
+                0,3);
+        animUlt = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_ult_P2.png"),
+                8,2376/8,192, Duration.seconds(1),
                 0,3);
 
-        animPunch = new AnimationChannel(FXGL.getAssetLoader().loadImage("punch_punk.png"),
-                3,288/3,63, Duration.seconds(1),
-                0,2);
         // How to know framesPerRow? count how many sprites are there in the png
         // in walking.png there are 10 and divide that value to the width
         texture = new AnimatedTexture(animIdle);
@@ -58,9 +77,9 @@ public class PlayerControl2 extends Component {
                 Entity player1 = FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER).get(0);
 
                 if (getEntity().getBoundingBoxComponent().isCollidingWith(player1.getBoundingBoxComponent())) {
-                    player1.getComponent(HealthComponent.class).takeDamage(10);
+                    player1.getComponent(HealthComponent.class).takeDamage(50);
                     System.out.println("Player 1 took damage! " + player1.getComponent(HealthComponent.class).getHealth());
-                    damageApplied = true; // Prevent repeated damage during the same punch
+                    damageApplied = true;
                 }
             }
 
@@ -70,6 +89,51 @@ public class PlayerControl2 extends Component {
                 return; // Don't change animation while punching
             }
         }
+
+        if (enhancedPunching) {
+            enhancedPunchTimer -= tpf;
+
+            if (!damageApplied) {
+                Entity player1 = FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER).get(0);
+
+                if (getEntity().getBoundingBoxComponent().isCollidingWith(player1.getBoundingBoxComponent())) {
+                    player1.getComponent(HealthComponent.class).takeDamage(enhancedPunchDamage);
+                    System.out.println("Player 1 took " + enhancedPunchDamage + " damage! Remaining health: "
+                            + player1.getComponent(HealthComponent.class).getHealth());
+                    damageApplied = true;
+                }
+            }
+
+            if (enhancedPunchTimer <= 0) {
+                enhancedPunching = false;
+                texture.loopAnimationChannel(animIdle);
+            } else {
+                return;
+            }
+        }
+
+        if (ultActive) {
+            ultTimer -= tpf;
+
+            if (!damageApplied) {
+                Entity player1 = FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER).get(0);
+
+                if (getEntity().getBoundingBoxComponent().isCollidingWith(player1.getBoundingBoxComponent())) {
+                    player1.getComponent(HealthComponent.class).takeDamage(20); // Deal 20 damage
+                    System.out.println("Player 1 took 20 damage! Remaining health: "
+                            + player1.getComponent(HealthComponent.class).getHealth());
+                    damageApplied = true;
+                }
+            }
+
+            if (ultTimer <= 0) {
+                ultActive = false;
+                texture.loopAnimationChannel(animIdle);
+            } else {
+                return;
+            }
+        }
+
 
         if (!isOnGround()) {
             if (!texture.getAnimationChannel().equals(animJump)) {
@@ -84,8 +148,8 @@ public class PlayerControl2 extends Component {
                 texture.loopAnimationChannel(animIdle);
             }
         }
-        entity.getTransformComponent().setScaleX(3);// temp rani duha since gamay kaayo orig sprite
-        entity.getTransformComponent().setScaleY(3);// temp rani duha since gamay kaayo orig sprite
+        entity.getTransformComponent().setScaleX(1);// temp rani duha since gamay kaayo orig sprite
+        entity.getTransformComponent().setScaleY(1);// temp rani duha since gamay kaayo orig sprite
     }
 
 
@@ -111,7 +175,7 @@ public class PlayerControl2 extends Component {
 
     public void P2up() {
         if (isOnGround()) {
-            physics.setVelocityY(-5); // Adjust the jump strength as needed
+            physics.setVelocityY(-300); // Adjust the jump strength as needed
             texture.loopAnimationChannel(animJump);
         }
     }
@@ -141,5 +205,32 @@ public class PlayerControl2 extends Component {
             texture.playAnimationChannel(animPunch);
         }
     }
+    public void P2enhancedPunch() {
+        if (enhancedPunchTimer <= 0 && !enhancedPunching) {
+            enhancedPunching = true;
+            enhancedPunchTimer = enhancedPunchCooldown.toSeconds();
+            damageApplied = false;
+            System.out.println("Enhanced Punch Triggered!");
+            texture.playAnimationChannel(animEnhancedAttack);
+        }
+    }
+
+    public void P2ultAttack() {
+        if (ultActive) {
+            return;
+        }
+
+        System.out.println("Ult Attack Triggered!");
+
+        punching = false;
+        enhancedPunching = false;
+        texture.stop();
+        texture.playAnimationChannel(animUlt);
+
+        ultActive = true;
+        ultTimer = ultDuration;
+        damageApplied = false;
+    }
+
 
 }

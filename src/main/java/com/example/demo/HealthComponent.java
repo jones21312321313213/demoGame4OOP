@@ -20,6 +20,9 @@ public class HealthComponent extends Component {
         if (listener != null) {
             listener.onHealthChanged(health);
         }
+        if (entity.hasComponent(PlayerControl.class)) {
+            entity.getComponent(PlayerControl.class).playHitAnimation();
+        }
 
         if (health <= 0) {
             health = 0;
