@@ -442,6 +442,8 @@ public class HelloApplication extends GameApplication {
         p2Star.layout();
         p1Star.requestLayout();
         p2Star.requestLayout();
+        P1Ult = false;
+        P2Ult = false;
         FXGL.getGameController().resumeEngine();
         FXGL.getGameController().startNewGame();
     }
