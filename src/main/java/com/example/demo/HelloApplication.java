@@ -205,7 +205,7 @@ public class HelloApplication extends GameApplication {
     @Override
     protected void initGame(){
         getGameWorld().addEntityFactory(new SimpleFactory());
-      Level level = getAssetLoader().loadLevel("tmx/map5.tmx", new TMXLevelLoader());
+      Level level = getAssetLoader().loadLevel("tmx/map.tmx", new TMXLevelLoader());
       getGameWorld().setLevel(level);
 
 
