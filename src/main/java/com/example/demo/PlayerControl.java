@@ -88,7 +88,7 @@ public class PlayerControl extends Component {
                 Entity player2 = FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER2).get(0);
 
                 if (getEntity().getBoundingBoxComponent().isCollidingWith(player2.getBoundingBoxComponent())) {
-                    player2.getComponent(HealthComponent.class).takeDamage(50);
+                    player2.getComponent(HealthComponent.class).takeDamage(10);
                     System.out.println("Player 2 took damage! " + player2.getComponent(HealthComponent.class).getHealth());
                     damageApplied = true;
                 }

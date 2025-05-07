@@ -77,7 +77,7 @@ public class PlayerControl2 extends Component {
                 Entity player1 = FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER).get(0);
 
                 if (getEntity().getBoundingBoxComponent().isCollidingWith(player1.getBoundingBoxComponent())) {
-                    player1.getComponent(HealthComponent.class).takeDamage(50);
+                    player1.getComponent(HealthComponent.class).takeDamage(10);
                     System.out.println("Player 1 took damage! " + player1.getComponent(HealthComponent.class).getHealth());
                     damageApplied = true;
                 }
@@ -119,7 +119,7 @@ public class PlayerControl2 extends Component {
                 Entity player1 = FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER).get(0);
 
                 if (getEntity().getBoundingBoxComponent().isCollidingWith(player1.getBoundingBoxComponent())) {
-                    player1.getComponent(HealthComponent.class).takeDamage(20); // Deal 20 damage
+                    player1.getComponent(HealthComponent.class).takeDamage(20);
                     System.out.println("Player 1 took 20 damage! Remaining health: "
                             + player1.getComponent(HealthComponent.class).getHealth());
                     damageApplied = true;

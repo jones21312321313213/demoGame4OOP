@@ -135,7 +135,7 @@ public class HelloApplication extends GameApplication {
         getInput().addAction(new UserAction("P1Ult") {
             @Override
             protected void onAction() {
-                if (isUltAvailableForP1 || !P1Ult) {
+                if (isUltAvailableForP1 && !P1Ult) {
                     player.getComponent(PlayerControl.class).ultAttack();
                     isUltAvailableForP1 = false;
                     ultAvailableText.setVisible(false);
@@ -186,7 +186,7 @@ public class HelloApplication extends GameApplication {
         getInput().addAction(new UserAction("P2Ult") {
             @Override
             protected void onAction() {
-                if (isUltAvailableForP2 || !P2Ult) {
+                if (isUltAvailableForP2 && !P2Ult) {
                     player2.getComponent(PlayerControl2.class).P2ultAttack();
                     isUltAvailableForP2 = false;
                     ultAvailableTextP2.setVisible(false);
@@ -325,7 +325,7 @@ public class HelloApplication extends GameApplication {
     }
     private void updateHealthBar(int newHealth) {
         healthBar.setProgress(newHealth / 100.0);
-        if (newHealth <= 50) {
+        if (newHealth <= 50 && !P2Ult) {
             isUltAvailableForP2 = true;
             ultAvailableTextP2.setVisible(true);
             System.out.println("ULT is now available for Player 2.");
@@ -337,7 +337,7 @@ public class HelloApplication extends GameApplication {
 
     private void updateHealthBarPlayer2(int newHealth) {
         System.out.println("Player 2 health changed: " + newHealth);
-        if (newHealth <= 50) {
+        if (newHealth <= 50 && !P1Ult) {
             isUltAvailableForP1 = true;
             ultAvailableText.setVisible(true);
             System.out.println("ULT is now available for Player 1.");
