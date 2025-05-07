@@ -17,12 +17,12 @@ public class MySceneFactory extends SceneFactory {
     @NotNull
     @Override
     public FXGLMenu newGameMenu() {
-        return new CustomMainMenu(MenuType.GAME_MENU); // optional if you want a game menu too
+        return new CustomMainMenu(MenuType.GAME_MENU);
     }
 
     @NotNull
     @Override
     public IntroScene newIntro() {
-        return new CustomIntro(); // Your custom intro scene
+        return new CustomIntro(); // custom intro
     }
 }

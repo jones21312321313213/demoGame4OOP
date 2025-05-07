@@ -3,9 +3,13 @@ package com.example.demo;
 import com.almasb.fxgl.app.scene.FXGLMenu;
 import com.almasb.fxgl.app.scene.MenuType;
 import com.almasb.fxgl.dsl.FXGL;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 
 import javafx.scene.control.Button;
@@ -17,6 +21,9 @@ import javafx.scene.text.Font;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
+
+import java.io.IOException;
+
 public class CustomMainMenu extends FXGLMenu {
 
     public CustomMainMenu(@NotNull MenuType type) {
@@ -98,18 +105,25 @@ public class CustomMainMenu extends FXGLMenu {
         controlsButton.setLayoutX(880);
         controlsButton.setLayoutY(750);
         controlsButton.setOnAction(e -> {
-            String controlsInfo = "Player 1:\n" +
-                    "  Move Left: A\n" +
-                    "  Move Right: D\n" +
-                    "  Jump: W\n" +
-                    "  Punch: F\n\n" +
-                    "Player 2:\n" +
-                    "  Move Left: J\n" +
-                    "  Move Right: L\n" +
-                    "  Jump: I\n" +
-                    "  Punch: H";
-            FXGL.getDialogService().showMessageBox(controlsInfo);
+            try {
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/demo/playerControls.fxml"));
+                Parent playerControl = fxmlLoader.load();
+
+                // Option 1: Open in a new window
+                Stage controlsStage = new Stage();
+                controlsStage.setTitle("Controls");
+                controlsStage.setScene(new Scene(playerControl));
+                controlsStage.show();
+
+                // Option 2 (Alternative): Replace current scene
+                // Stage stage = (Stage) controlsButton.getScene().getWindow();
+                // stage.setScene(new Scene(root));
+
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         });
+
 
         /////////////////////////////
 

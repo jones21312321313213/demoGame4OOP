@@ -13,8 +13,11 @@ import com.almasb.fxgl.physics.PhysicsComponent;
 import com.almasb.fxgl.physics.box2d.dynamics.BodyType;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 
+import java.util.List;
 
 
 public class SimpleFactory implements EntityFactory {
@@ -24,7 +27,6 @@ public class SimpleFactory implements EntityFactory {
         var physics = new PhysicsComponent();
         int width =  data.get("width");
         int height =  data.get("height");
-
         return FXGL.entityBuilder(data)
                 .bbox(new HitBox(BoundingShape.box(width, height)))
                 .with(physics)

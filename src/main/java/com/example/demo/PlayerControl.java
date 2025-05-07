@@ -186,6 +186,7 @@ public class PlayerControl extends Component {
 
 
     public void up() {
+
         if (isOnGround()) {
             physics.setVelocityY(-300);
             texture.loopAnimationChannel(animJump);

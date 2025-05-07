@@ -78,8 +78,8 @@ public class HelloApplication extends GameApplication {
 
     @Override
     protected void initSettings(GameSettings settings) {
-        settings.setWidth(1920);
-        settings.setHeight(1080);
+        settings.setWidth(1920);//set this to 1984
+        settings.setHeight(1080);// set this to 1088
         settings.setTitle("Stictactics");
 //        settings.setVersion("0.1");
         settings.setIntroEnabled(false);// i true later
@@ -88,6 +88,7 @@ public class HelloApplication extends GameApplication {
         settings.setCloseConfirmation(true);
         //settings.setFullScreenAllowed(true);
         settings.setSceneFactory(new MySceneFactory());
+
     }
     private Entity player;
     private Entity player2;
@@ -204,7 +205,7 @@ public class HelloApplication extends GameApplication {
     @Override
     protected void initGame(){
         getGameWorld().addEntityFactory(new SimpleFactory());
-      Level level = getAssetLoader().loadLevel("tmx/idkbackground.tmx", new TMXLevelLoader());
+      Level level = getAssetLoader().loadLevel("tmx/map6.tmx", new TMXLevelLoader());
       getGameWorld().setLevel(level);
 
 
