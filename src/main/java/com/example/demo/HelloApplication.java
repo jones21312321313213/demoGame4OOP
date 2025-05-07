@@ -537,6 +537,8 @@ public class HelloApplication extends GameApplication {
             System.out.println("ULT is not available for Player 1.");
         }
     }
+
+
     public static void main(String[] args) {
         launch(args);
     }

@@ -41,14 +41,14 @@ public class SimpleFactory implements EntityFactory {
 //        var width = data.<Integer>get("width");
 //        var height = data.<Integer>get("height");
 
-        Rectangle outline = new Rectangle(60, 195);
+        Rectangle outline = new Rectangle(115, 195);
         outline.setFill(Color.TRANSPARENT);
         outline.setStroke(Color.RED);
         outline.setStrokeWidth(1);
         outline.setTranslateX(15);
         outline.setTranslateY(5);
 
-        HitBox offsetHitBox = new HitBox("PLAYER_HITBOX", new Point2D(15, 5), BoundingShape.box(60, 195));
+        HitBox offsetHitBox = new HitBox("PLAYER_HITBOX", new Point2D(15, 5), BoundingShape.box(115, 195));
 
         return FXGL.entityBuilder(data)
                 .type(GameEntityType.PLAYER)
@@ -68,14 +68,14 @@ public class SimpleFactory implements EntityFactory {
 //        var width = data.<Integer>get("width");
 //        var height = data.<Integer>get("height");
 
-        Rectangle outline = new Rectangle(60, 195);
+        Rectangle outline = new Rectangle(115, 195);
         outline.setFill(Color.TRANSPARENT);
         outline.setStroke(Color.RED);
         outline.setStrokeWidth(1);
         outline.setTranslateX(15);
         outline.setTranslateY(5);
 
-        HitBox offsetHitBox = new HitBox("PLAYER_HITBOX", new Point2D(15, 5), BoundingShape.box(60, 195));
+        HitBox offsetHitBox = new HitBox("PLAYER_HITBOX", new Point2D(15, 5), BoundingShape.box(115, 195));
 
         return FXGL.entityBuilder(data)
                 .type(GameEntityType.PLAYER2)
