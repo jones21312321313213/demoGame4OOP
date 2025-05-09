@@ -84,6 +84,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -109,6 +110,7 @@
                     <mainClass>com.example.demo.HelloApplication</mainClass>
                 </configuration>
             </plugin>
+
         </plugins>
     </build>
 </project>

@@ -90,6 +90,7 @@ public class HelloApplication extends GameApplication {
         settings.setSceneFactory(new MySceneFactory());
 
     }
+
     private Entity player;
     private Entity player2;
     @Override
@@ -199,7 +200,7 @@ public class HelloApplication extends GameApplication {
 
     @Override
     protected void initPhysics() {
-        getPhysicsWorld().setGravity(0, 120);
+        getPhysicsWorld().setGravity(0, 195);
     }
 
     @Override

@@ -23,25 +23,17 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 
 import java.io.IOException;
+import java.net.URL;
 
 public class CustomMainMenu extends FXGLMenu {
+    private static final int MAX_RETRIES = 20;  // Max retry attempts
+    private static final int RETRY_DELAY_MS = 2000;  // Delay in ms between retries
 
     public CustomMainMenu(@NotNull MenuType type) {
         super(type);
 
         // Create and add background firss.d,s.d,
-        String videoPath = getClass().getResource("/assets/textures/background-intro.mp4").toExternalForm();
-
-        Media media = new Media(videoPath);
-        MediaPlayer mediaPlayer = new MediaPlayer(media);
-        mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE); // loop the video
-        mediaPlayer.setAutoPlay(true);
-        MediaView mediaView = new MediaView(mediaPlayer);
-        mediaView.setFitWidth(FXGL.getAppWidth());
-        mediaView.setFitHeight(FXGL.getAppHeight());
-
-        getContentRoot().getChildren().add(mediaView);
-
+        loadBackgroundVideo();
 
         Button playButton = new Button("Play");
 //        playButton.setStyle("-fx-background-color: yellow; -fx-background-radius: 50; -fx-font-size: 24px;");
@@ -146,5 +138,55 @@ public class CustomMainMenu extends FXGLMenu {
 
         root.getChildren().addAll(redButton,redButton2,redButton3,startButton, controlsButton,exitButton);
         getContentRoot().getChildren().add(root);
+    }
+
+    private void loadBackgroundVideo() {
+        String videoPath = "/assets/textures/background-intro.mp4";
+        int attempt = 0;
+
+        while (attempt < MAX_RETRIES) {
+            try {
+                URL resource = getClass().getResource(videoPath);
+
+                if (resource == null) {
+                    throw new IOException("Video resource not found: " + videoPath);
+                }
+
+                String fullPath = resource.toExternalForm();
+                Media media = new Media(fullPath);
+                MediaPlayer mediaPlayer = new MediaPlayer(media);
+                mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE); // loop the video
+                mediaPlayer.setAutoPlay(true);
+                MediaView mediaView = new MediaView(mediaPlayer);
+                mediaView.setFitWidth(FXGL.getAppWidth());
+                mediaView.setFitHeight(FXGL.getAppHeight());
+
+                getContentRoot().getChildren().add(mediaView);
+                return;
+
+            } catch (Exception e) {
+                attempt++;
+                System.err.println("Attempt " + attempt + ": " + e.getMessage());
+
+                if (attempt >= MAX_RETRIES) {
+                    System.err.println("Failed to load video after " + MAX_RETRIES + " attempts.");
+                    break;
+                }
+
+                try {
+                    Thread.sleep(RETRY_DELAY_MS);
+                } catch (InterruptedException interruptedException) {
+                    interruptedException.printStackTrace();
+                }
+            }
+        }
+        loadFallbackImage(); // Only called if all attempts fail
+    }
+
+
+    private void loadFallbackImage() {
+        // Fallback to an image if video is not found after retries
+        System.out.println("Loading fallback image...");
+        // Add your fallback image code here
     }
 }

@@ -83,7 +83,7 @@ public class SimpleFactory implements EntityFactory {
                 .bbox(offsetHitBox)
                 .viewWithBBox(outline)
                 .with(physics)
-                .with(new PlayerControl2())
+                .with(new PlayerControl2("character2"))
                 .build();
     }
 

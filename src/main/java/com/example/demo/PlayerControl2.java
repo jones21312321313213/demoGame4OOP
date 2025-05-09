@@ -20,7 +20,7 @@ public class PlayerControl2 extends Component {
     private PhysicsComponent physics;
     private double speed = 0;
     private AnimatedTexture texture;
-    private AnimationChannel animIdle,animWalk,animJump,animPunch, animEnhancedAttack,animUlt;
+    private AnimationChannel animIdle,animWalk,animJump,animPunch, animEnhancedAttack,animUlt,animHit;
 
     private boolean punching = false;
     private double punchTimer = 0;
@@ -38,34 +38,15 @@ public class PlayerControl2 extends Component {
     private double ultDuration = 2;
     private double ultTimer = 0;
 
-    public PlayerControl2(){
-        animIdle = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_idle_P2.png"),
-                8,1320/8,192, Duration.seconds(1),
-                0,7);
-
-        animWalk = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_walk_P2.png"),
-                8,1280/8,192, Duration.seconds(1),
-                0,7);
-        animEnhancedAttack = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_attack_enhanced_p2.png"),
-                8,1320/8,192, Duration.seconds(1),
-                0,7);
-
-        animJump = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_jump_P2.png"),
-                5,825/5,192, Duration.seconds(1),
-                0,2);
-        // How to know framesPerRow? count how many sprites are there in the png
-        // in walking.png there are 10 and divide that value to the width
-
-
-        animPunch = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_attack_P2.png"),
-                8,1320/8,192, Duration.seconds(1),
-                0,3);
-        animUlt = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_ult_P2.png"),
-                8,2376/8,192, Duration.seconds(1),
-                0,3);
-
-        // How to know framesPerRow? count how many sprites are there in the png
-        // in walking.png there are 10 and divide that value to the width
+    public PlayerControl2(String charcter){
+        CharacterFactory c = new CharacterFactory(charcter);
+        animIdle = c.getAnimIdle();
+        animWalk = c.getAnimWalk();
+        animJump = c.getAnimJump();
+        animEnhancedAttack = c.getAnimEnhancedAttack();
+        animPunch = c.getAnimPunch();
+        animHit = c.getAnimHit();
+        animUlt = c.getAnimUlt();
         texture = new AnimatedTexture(animIdle);
     }
     @Override
