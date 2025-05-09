@@ -15,6 +15,11 @@ public class HealthComponent extends Component {
         this.health = initialHealth;
     }
 
+
+    public void setHealth(int health){
+        this.health = health;
+    }
+
     public void takeDamage(int damage) {
         System.out.println("Taking damage");
         health -= damage;

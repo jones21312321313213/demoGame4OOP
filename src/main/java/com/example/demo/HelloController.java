@@ -77,6 +77,11 @@ public class HelloController extends GameApplication {
     private CustomPauseMenu pauseMenu;
     private ArrayList<GameState> gameStateList = new ArrayList<>();
 
+    private double x1 = 100,y1 = 100;
+    private double x2 = 1000,y2 = 100;
+
+    private boolean isFirstLaunch = true;
+
     @Override
     protected void onPreInit(){
         FXGL.getAssetLoader().loadTexture("/assets/textures/background-intro.mp4");
@@ -94,8 +99,9 @@ public class HelloController extends GameApplication {
         settings.setCloseConfirmation(true);
         //settings.setFullScreenAllowed(true);
         settings.setSceneFactory(new MySceneFactory());
-
+        RoundStateManager.getInstance().setStartOfRound(true);
     }
+
 
     private Entity player;
     private Entity player2;
@@ -226,8 +232,11 @@ public class HelloController extends GameApplication {
     }
 
 
+
+   // public int temp = 100 , temp2= 100;
     @Override
     protected void initGame() {
+
         getGameWorld().addEntityFactory(new SimpleFactory());
 
         Random random = new Random();
@@ -268,7 +277,6 @@ public class HelloController extends GameApplication {
         Runnable onTimerEnd = () -> {
             int p1Health = player.getComponent(HealthComponent.class).getHealth();
             int p2Health = player2.getComponent(HealthComponent.class).getHealth();
-
             if (p1Health > p2Health) {
                 onPlayerDied(GameEntityType.PLAYER2);
             } else if (p2Health > p1Health) {
@@ -280,10 +288,33 @@ public class HelloController extends GameApplication {
         matchTimer = new MatchTimer(matchTime, matchTimerText, onTimerEnd);
         matchTimer.start();
         pauseMenu = new CustomPauseMenu(MenuType.GAME_MENU,matchTimer,gameStateList);
-        loadSavedGame(matchTimer);
+//        FXGL.getGameTimer().runOnceAfter(() -> {
+//            loadSavedGame(matchTimer);
+//        }, Duration.seconds(1)); // Delay slightly to ensure entities are in the world
 
-        player = getGameWorld().spawn("player",100,100);
-        player2 = getGameWorld().spawn("player2",1000,100);
+        if(RoundStateManager.getInstance().isStartOfRound() || isFirstLaunch) {
+            player = getGameWorld().spawn("player", 100, 100);
+            player2 = getGameWorld().spawn("player2", 1000, 100);
+//            // Set full health for new round
+            player.getComponent(HealthComponent.class).setHealth(100);
+            player2.getComponent(HealthComponent.class).setHealth(100);
+        } else {
+            loadSavedGame(matchTimer);
+            try {
+                player = getGameWorld().spawn("player", x1, y1);
+            } catch (Exception e) {
+                player = getGameWorld().spawn("player", 100, 100);
+                System.out.println("Error spawning player: " + e);
+            }
+            try {
+                player2 = getGameWorld().spawn("player2", x2, y2);
+            } catch (Exception e) {
+                player2 = getGameWorld().spawn("player2", 1000, 100);
+                System.out.println("Error spawning player2: " + e);
+            }
+
+        }
+
 
         healthBar = new ProgressBar(1.0);
         healthBar.setPrefWidth(500);
@@ -376,14 +407,35 @@ public class HelloController extends GameApplication {
         getGameScene().addUINode(cooldownArcP2);
         getGameScene().addUINode(cooldownTextP2);
 
+        // Verify components exist before setting listeners
+        // Set up death listeners (these should always be set regardless of new round or loaded game)
         player.getComponent(HealthComponent.class).setDeathListener(this::onPlayerDied);
         player2.getComponent(HealthComponent.class).setDeathListener(this::onPlayerDied);
 
         player.getComponent(HealthComponent.class).setHealthChangeListener(this::updateHealthBar);
-        updateHealthBar(player.getComponent(HealthComponent.class).getHealth());
-
         player2.getComponent(HealthComponent.class).setHealthChangeListener(this::updateHealthBarPlayer2);
-        updateHealthBarPlayer2(player2.getComponent(HealthComponent.class).getHealth());
+
+        if (RoundStateManager.getInstance().isStartOfRound()) {
+            // New round - set full health
+            player.getComponent(HealthComponent.class).setHealth(100);
+            player2.getComponent(HealthComponent.class).setHealth(100);
+            // Update health bars to reflect full health
+            updateHealthBar(100);
+            updateHealthBarPlayer2(100);
+        } else {
+            // Loading saved game - health will be set by loadSavedGame
+            loadSavedGame(matchTimer);
+
+            // Make sure the UI reflects the loaded health values
+            if (player != null && player.hasComponent(HealthComponent.class)) {
+                updateHealthBar(player.getComponent(HealthComponent.class).getHealth());
+            }
+            if (player2 != null && player2.hasComponent(HealthComponent.class)) {
+                updateHealthBarPlayer2(player2.getComponent(HealthComponent.class).getHealth());
+            }
+        }
+        p1Star.getChildren().clear();
+        p2Star.getChildren().clear();
 
         for (int i = 0; i < p1Score; i++) {
             addStar(p1Star);
@@ -396,6 +448,17 @@ public class HelloController extends GameApplication {
         p1Star.requestLayout();
         p2Star.requestLayout();
 
+    }
+
+    private boolean hasLoaded = false;
+    @Override
+    protected void onUpdate(double tpf) {
+        if (!hasLoaded &&
+                FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER).size() > 0 &&
+                FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER2).size() > 0) {
+            loadSavedGame(matchTimer);
+            hasLoaded = true;
+        }
     }
 
     private void updateHealthBar(int newHealth) {
@@ -412,6 +475,7 @@ public class HelloController extends GameApplication {
 
     private void updateHealthBarPlayer2(int newHealth) {
         //System.out.println("Player 2 health changed: " + newHealth);
+
         if (newHealth <= 50 && !P1Ult) {
             isUltAvailableForP1 = true;
             ultAvailableText.setVisible(true);
@@ -421,8 +485,9 @@ public class HelloController extends GameApplication {
             ultAvailableText.setVisible(false);
             //System.out.println("ULT is not available for Player 1.");
         }
-        healthBar2.setProgress(newHealth / 100.0);
+        healthBar2.setProgress(newHealth/100.00);
     }
+
 
     private void onPlayerDied(GameEntityType deadPlayerType) {
         if (deadPlayerType == GameEntityType.PLAYER) {
@@ -438,11 +503,12 @@ public class HelloController extends GameApplication {
         } else {
             showRoundWinScreen(deadPlayerType);
         }
+
     }
 
     private void showRoundWinScreen(GameEntityType deadPlayerType) {
+        RoundStateManager.getInstance().setStartOfRound(true);
         FXGL.getGameScene().clearUINodes();
-
 
         String winner = (deadPlayerType == GameEntityType.PLAYER) ? "Player 2" : "Player 1";
 
@@ -469,6 +535,7 @@ public class HelloController extends GameApplication {
     }
 
     private void showGameOverScreen(String winnerText) {
+        RoundStateManager.getInstance().setStartOfRound(true);
         FXGL.getGameScene().clearUINodes();
 
         var message = FXGL.getUIFactoryService().newText(winnerText, 48);
@@ -492,11 +559,13 @@ public class HelloController extends GameApplication {
         dialogBox.setLayoutY(centerY - 100);
 
         FXGL.getGameScene().addUINode(dialogBox);
-
         FXGL.getGameController().pauseEngine();
     }
 
     private void backToMainMenu() {
+        isFirstLaunch = true;
+        p1Score = 0;
+        p2Score = 0;
         FXGL.getGameController().resumeEngine();
         FXGL.getGameController().gotoMainMenu();
     }
@@ -525,6 +594,7 @@ public class HelloController extends GameApplication {
     private void restartMatch() {
         p1Score = 0;
         p2Score = 0;
+        isFirstLaunch = true;
         FXGL.getGameController().resumeEngine();
         FXGL.getGameController().startNewGame();
     }
@@ -626,23 +696,29 @@ public class HelloController extends GameApplication {
         }, Duration.seconds(1));
     }
 
-    @SuppressWarnings("unchecked")
+    //@SuppressWarnings("unchecked")
     private void loadSavedGame(MatchTimer matchTimer) {
+        if (isFirstLaunch) {
+            isFirstLaunch = false;  // Set to false so future loads will work
+            p1Score = 0;
+            p2Score = 0;
+            return;
+        }
         File file = new File("savedstates.txt");
         if (!file.exists()) {
             System.out.println("No saved game states found.");
             return;
         }
-
+        RoundStateManager.getInstance().setStartOfRound(false);
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
-            ArrayList<GameState> savedStates = (ArrayList<GameState>) in.readObject();
+            gameStateList = (ArrayList<GameState>) in.readObject();
 
-            if (savedStates.isEmpty()) {
+            if (gameStateList.isEmpty()) {
                 System.out.println("Saved game state list is empty.");
                 return;
             }
 
-            GameState gameState = savedStates.get(0); // Load the most recent state
+            GameState gameState = gameStateList.get(gameStateList.size() - 1); // Load the most recent state
 
             // Restore game data into FXGL
             FXGL.set("player1Health", gameState.getPlayer1Health());
@@ -653,14 +729,40 @@ public class HelloController extends GameApplication {
             FXGL.set("player2Score", gameState.getPlayer2Score());
             FXGL.set("currentMap", gameState.getMap());
 
-            // Restore player positions
-            FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER)
-                    .stream().findFirst()
-                    .ifPresent(e -> e.setPosition(gameState.getPlayer1X(), gameState.getPlayer1Y()));
+            //restore players/characters positions
+            x1 = y1 = x2 = y2 = 0;
+            x1 = gameState.getPlayer1X();
+            y1 = gameState.getPlayer1Y();
+            x2 = gameState.getPlayer2X();
+            y2 = gameState.getPlayer2Y();
+//            temp = gameState.getPlayer1Health();
+//            temp2 = gameState.getPlayer2Health();
 
-            FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER2)
-                    .stream().findFirst()
-                    .ifPresent(e -> e.setPosition(gameState.getPlayer2X(), gameState.getPlayer2Y()));
+            System.out.println("Loading health values - P1: " + gameState.getPlayer1Health() +
+                    ", P2: " + gameState.getPlayer2Health());
+
+            if (player != null && player.hasComponent(HealthComponent.class)) {
+                System.out.println("Setting P1 health to: " + gameState.getPlayer1Health());
+                player.getComponent(HealthComponent.class).setHealth(gameState.getPlayer1Health());
+                updateHealthBar(gameState.getPlayer1Health());
+            }
+
+            if (player2 != null && player2.hasComponent(HealthComponent.class)) {
+                System.out.println("Setting P2 health to: " + gameState.getPlayer2Health());
+                player2.getComponent(HealthComponent.class).setHealth(gameState.getPlayer2Health());
+                updateHealthBarPlayer2(gameState.getPlayer2Health());
+            }
+
+//            updateHealthBar(gameState.getPlayer1Health());
+//            updateHealthBarPlayer2(gameState.getPlayer2Health());
+
+            for (int i = 0; i < p1Score; i++) {
+                addStar(p1Star);
+            }
+            for (int i = 0; i < p2Score; i++) {
+                addStar(p2Star);
+            }
+
 
             // Optionally restore timer
 //            matchTimer.stop();
@@ -681,7 +783,6 @@ public class HelloController extends GameApplication {
             System.out.println("Player 1 Position: (" + gameState.getPlayer1X() + ", " + gameState.getPlayer1Y() + ")");
             System.out.println("Player 2 Position: (" + gameState.getPlayer2X() + ", " + gameState.getPlayer2Y() + ")");
             System.out.println("Current Map: " + gameState.getMap());
-
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }

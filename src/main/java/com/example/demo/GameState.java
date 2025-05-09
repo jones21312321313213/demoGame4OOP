@@ -2,6 +2,8 @@ package com.example.demo;
 
 import java.io.Serializable;
 
+
+// used when players paused and there is no winner yet it will go back to the state right where they paused
 public class GameState implements Serializable {
     private int timeLeft;
     private int player1Health;
@@ -82,6 +84,8 @@ public class GameState implements Serializable {
     public String getMap() {
         return map;
     }
+
+
     @Override
     public String toString() {
         return "GameState{" +

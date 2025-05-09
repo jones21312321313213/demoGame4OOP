@@ -4,8 +4,7 @@ import com.almasb.fxgl.app.scene.FXGLMenu;
 import com.almasb.fxgl.app.scene.MenuType;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
-import com.example.demo.GameState;
-import com.example.demo.MatchTimer;
+import com.example.demo.*;
 import com.example.demo.listeners.GameEntityType;
 import javafx.scene.control.Button;
 import javafx.scene.layout.AnchorPane;
@@ -14,11 +13,13 @@ import javafx.scene.text.Font;
 
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 
 public class CustomPauseMenu extends FXGLMenu {
     private final MatchTimer matchTimer; //
     private ArrayList<GameState> gameStateList = new ArrayList<>();
+    private boolean saved = false;
     public CustomPauseMenu(MenuType type, MatchTimer matchTimer, ArrayList<GameState> gameStateList) {
         super(type);
         this.matchTimer = matchTimer;
@@ -46,7 +47,13 @@ public class CustomPauseMenu extends FXGLMenu {
         exitButton.setLayoutX(880);
         exitButton.setLayoutY(750);
         exitButton.setStyle("-fx-background-color: orange; -fx-background-radius: 50;");
-        exitButton.setOnAction(e -> fireExitToMainMenu());
+        exitButton.setOnAction(e -> {
+            if(!saved){
+                RoundStateManager.getInstance().setStartOfRound(true);
+            }
+            fireExitToMainMenu();
+
+        });
 
         // Save Button (Added)
         Button saveButton = new Button("Save Game");
@@ -55,13 +62,16 @@ public class CustomPauseMenu extends FXGLMenu {
         saveButton.setLayoutX(880);
         saveButton.setLayoutY(850);  // Adjust position below the Exit button
         saveButton.setStyle("-fx-background-color: lightgreen; -fx-background-radius: 50;");
-        saveButton.setOnAction(e -> fireSaveGame(matchTimer));
+        saveButton.setOnAction(e -> {
+            fireSaveGame(matchTimer);
+            RoundStateManager.getInstance().setStartOfRound(false);
+            saved = true;
+        });
 
         // Adding buttons to the root pane
         root.getChildren().addAll(resumeButton, exitButton, saveButton);
         getContentRoot().getChildren().add(root);
     }
-
 
     // Add your save game functionality here (stub for now)
     private void fireSaveGame(MatchTimer matchTimer) {
@@ -69,51 +79,47 @@ public class CustomPauseMenu extends FXGLMenu {
             // Fetch game data from FXGL variables
             int timeLeft = matchTimer.getTimeLeft();
 
-            String player1Name = FXGL.gets("player1Name");
-            String player2Name = FXGL.gets("player2Name");
+//            String player1Name = FXGL.gets("player1Name");
+//            String player2Name = FXGL.gets("player2Name");
 
-//            String player1Name = "Heloo ";
-//            String player2Name = " World";
-            int player1Health = FXGL.geti("player1Health");
-            int player2Health = FXGL.geti("player2Health");
+            String player1Name = "Heloo ";
+            String player2Name = " World";
+//            int player1Health = FXGL.geti("player1Health");
+//            int player2Health = FXGL.geti("player2Health");
 
-            int player1Score = FXGL.geti("player1Score");
-            int player2Score = FXGL.geti("player2Score");
 
-            String map = FXGL.gets("currentMap");
 
-            // You can fetch player positions from FXGL game world if needed
-//            double player1X = 1.1;
-//            double player1Y = 2.2;
-//            double player2X = 3.3;
-//            double player2Y = 4.4;
+//            int player1Score = FXGL.geti("player1Score");
+//            int player2Score = FXGL.geti("player2Score");
+            int player1Score = 123445;
+            int player2Score = 1122;
+
+
+//            String map = FXGL.gets("currentMap");
+            String map =  "idk";
 
             Entity player1 = FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER).get(0);
             Entity player2 = FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER2).get(0);
 
-            double player1X = player1.getX();
-            double player1Y = player1.getY();
+            double x1 = 0.0;
+            double y1 = 0.0;
+            double x2 = 0.0;
+            double y2 = 0.0;
 
-            double player2X = player2.getX();
-            double player2Y = player2.getY();
-
-
-//            double player1X = player1.getX();
-//            double player1Y = player1.getY();
-//
-//            double player2X = player2.getX();
-//            double player2Y = player2.getY();
-
+            if (player1 != null) {
+                x1 = player1.getX();
+                y1 = player1.getY();
+            }
+            if (player2 != null) {
+                x2 = player2.getX();
+                y2 = player2.getY();
+            }
 
             //          String player1Name = "player1";
 //            String player2Name = "player2";
-//            int player1Health = 100;
-//            int player2Health = 100;
-//            double player1X = 1.1;
-//            double player1Y = 2.2;
-//            double player2X = 3.3;
-//            double player2Y = 4.4;
-            // Create a new GameState object with the actual game data
+            int player1Health =   player1.getComponent(HealthComponent.class).getHealth();
+            int player2Health = player2.getComponent(HealthComponent.class).getHealth();
+
 
             GameState gameState = new GameState(
                     timeLeft,
@@ -123,26 +129,27 @@ public class CustomPauseMenu extends FXGLMenu {
                     player2Name,
                     player1Score,
                     player2Score,
-                    player1X,
-                    player1Y,
-                    player2X,
-                    player2Y,
+                    x1,
+                    y1,
+                    x2,
+                    y2,
                     map
             );
 
-            // Load previous states if not already loaded
-            if (gameStateList == null) {
-                gameStateList = new ArrayList<>();
-            }
-
             // Add to the front of the list (most recent first)
-            gameStateList.add(0, gameState);
+            gameStateList.add(gameState);
+
+            while (gameStateList.size() > 5) {
+                gameStateList.remove(0);  // Remove oldest
+            }
 
             // Serialize and save the list to a file
             try (FileOutputStream fileOut = new FileOutputStream("savedstates.txt");
                  ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
                 out.writeObject(gameStateList);
                 System.out.println("Game state saved. Total saved states: " + gameStateList.size());
+                System.out.println(x1 + " "+ y1 + " " + x2 +" " + y2);
+                System.out.println(player1Health + " " + player2Health);
             }
         } catch (Exception e) {
             e.printStackTrace();

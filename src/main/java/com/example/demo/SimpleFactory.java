@@ -17,6 +17,7 @@ import javafx.scene.shape.Rectangle;
 
 public class SimpleFactory implements EntityFactory {
 
+    private HelloController h = new HelloController();
     @Spawns("platform")
     public Entity newPlatForm(SpawnData data){
         var physics = new PhysicsComponent();

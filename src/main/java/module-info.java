@@ -7,5 +7,6 @@ open module com.example.demo {
     requires com.almasb.fxgl.all;
     requires annotations;
     requires jdk.jfr;
+    requires java.sql;
 
 }
