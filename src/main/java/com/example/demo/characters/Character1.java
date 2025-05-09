@@ -29,7 +29,7 @@ public class Character1 extends CharacterComponent {
                 8, 1320 / 8, 192, Duration.seconds(1),
                 0, 7);
 
-        animHit = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_ult.png"),
+        animHit = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_hit.png"),
                 8, 2376 / 8, 193, Duration.seconds(1),
                 0, 3);
 

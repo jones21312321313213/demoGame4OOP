@@ -4,9 +4,18 @@ import com.almasb.fxgl.app.scene.FXGLMenu;
 import com.almasb.fxgl.app.scene.IntroScene;
 import com.almasb.fxgl.app.scene.SceneFactory;
 import com.almasb.fxgl.app.scene.MenuType;
+import com.example.demo.Scenes.CustomIntro;
+import com.example.demo.Scenes.CustomMainMenu;
+import com.example.demo.Scenes.CustomPauseMenu;
+import javafx.css.Match;
 import org.jetbrains.annotations.NotNull;
 
 public class MySceneFactory extends SceneFactory {
+
+    private MatchTimer timer;
+    public MySceneFactory(MatchTimer timer){
+        this.timer = timer;
+    }
 
     @NotNull
     @Override
@@ -17,7 +26,7 @@ public class MySceneFactory extends SceneFactory {
     @NotNull
     @Override
     public FXGLMenu newGameMenu() {
-        return new CustomMainMenu(MenuType.GAME_MENU);
+        return new CustomPauseMenu(MenuType.GAME_MENU,timer);
     }
 
     @NotNull

@@ -92,10 +92,8 @@ public class PlayerControl2 extends Component {
                 return;
             }
         }
-
         if (ultActive) {
             ultTimer -= tpf;
-
             if (!damageApplied) {
                 Entity player1 = FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER).get(0);
 
@@ -106,7 +104,6 @@ public class PlayerControl2 extends Component {
                     damageApplied = true;
                 }
             }
-
             if (ultTimer <= 0) {
                 ultActive = false;
                 texture.loopAnimationChannel(animIdle);
@@ -114,8 +111,6 @@ public class PlayerControl2 extends Component {
                 return;
             }
         }
-
-
         if (!isOnGround()) {
             if (!texture.getAnimationChannel().equals(animJump)) {
                 texture.loopAnimationChannel(animJump);
@@ -129,7 +124,7 @@ public class PlayerControl2 extends Component {
                 texture.loopAnimationChannel(animIdle);
             }
         }
-        entity.getTransformComponent().setScaleX(1);// temp rani duha since gamay kaayo orig sprite
+        entity.getTransformComponent().setScaleX(-1);// temp rani duha since gamay kaayo orig sprite
         entity.getTransformComponent().setScaleY(1);// temp rani duha since gamay kaayo orig sprite
     }
 
@@ -149,7 +144,7 @@ public class PlayerControl2 extends Component {
             entity.getViewComponent().addChild(texture);
         }
         texture.loopAnimationChannel(animIdle);
-        entity.getTransformComponent().setScaleX(3);// temp rani duha since gamay kaayo orig sprite
+        entity.getTransformComponent().setScaleX(-3);// temp rani duha since gamay kaayo orig sprite
         entity.getTransformComponent().setScaleY(3);// temp rani duha since gamay kaayo orig sprite
     }
 
@@ -216,41 +211,43 @@ public class PlayerControl2 extends Component {
     }
 
     private void spawnHitbox(int damage, Duration duration) {
-        double reach = 1000;
+        double reach = 1000; // Attack range
         double boxWidth = reach;
         double boxHeight = 60;
 
         // ✅ Fix direction logic based on facing direction
-        double offsetX = texture.getScaleX() < 0 ? reach : -reach;
+        boolean facingRight = texture.getScaleX() < 0;
+        double offsetX = facingRight ? 0 : -boxWidth;
 
+        // Create the hitbox entity at the appropriate position
         Entity hitbox = FXGL.entityBuilder()
                 .type(GameEntityType.HITBOX)
                 .at(entity.getX() + offsetX, entity.getY() + 20)
                 .bbox(new HitBox(BoundingShape.box(boxWidth, boxHeight)))
                 .collidable()
-                .with(new HitboxControl(damage, duration, GameEntityType.PLAYER2))
+                .with(new HitboxControl(damage, duration, GameEntityType.PLAYER2))  // Adjust for the correct entity type
                 .buildAndAttach();
     }
 
+
     private void showHitboxEffect() {
         javafx.scene.shape.Rectangle box = new javafx.scene.shape.Rectangle(1000, 40);
-        box.setFill(javafx.scene.paint.Color.RED.deriveColor(1, 1, 1, 0.4));
+        box.setFill(javafx.scene.paint.Color.RED.deriveColor(1, 1, 1, 0.4));  // Light red color with transparency
         box.setArcWidth(10);
         box.setArcHeight(10);
 
         // ✅ Fix visual direction logic
-        double offsetX = texture.getScaleX() < 0 ? 0 : -1000;
+        double offsetX = texture.getScaleX() < 0 ? 0 : -1000;  // Show hitbox ahead if facing right, behind if facing left
         double screenX = entity.getX() + offsetX;
-        double screenY = entity.getY() + 20;
+        double screenY = entity.getY() + 20;  // Position it slightly below the character
 
         box.setLayoutX(screenX);
         box.setLayoutY(screenY);
 
-        FXGL.getGameScene().addUINode(box);
+        FXGL.getGameScene().addUINode(box);  // Add the visual hitbox to the scene
 
+        // Remove after a short duration
         FXGL.getGameTimer().runOnceAfter(() -> FXGL.getGameScene().removeUINode(box), Duration.seconds(0.3));
     }
-
-
 
 }

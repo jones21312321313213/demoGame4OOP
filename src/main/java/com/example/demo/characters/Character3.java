@@ -5,34 +5,33 @@ import com.almasb.fxgl.texture.AnimationChannel;
 import com.example.demo.CharacterComponent;
 import javafx.util.Duration;
 
-public class Character2 extends CharacterComponent {
+public class Character3 extends CharacterComponent {
     private AnimationChannel animIdle, animWalk, animJump, animPunch, animEnhancedAttack, animUlt, animHit;
-    public Character2(){
-        animIdle = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_idle_P2.png"),
-                8,1320/8,192, Duration.seconds(1),
-                0,7);
+    public Character3(){
+        animIdle = new AnimationChannel(FXGL.getAssetLoader().loadImage("character_2/knight_idle.png"),
+                7,1155/7,192, Duration.seconds(1),
+                0,6);
 
-        animWalk = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_walk_P2.png"),
-                8,1280/8,192, Duration.seconds(1),
+        animWalk = new AnimationChannel(FXGL.getAssetLoader().loadImage("character_2/knight_walk.png"),
+                8,1320/8,192, Duration.seconds(1),
                 0,7);
         animEnhancedAttack = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_attack_enhanced_p2.png"),
                 8,1320/8,192, Duration.seconds(1),
                 0,7);
 
-        animJump = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_jump_P2.png"),
+        animJump = new AnimationChannel(FXGL.getAssetLoader().loadImage("character_2/knight_jump.png"),
                 5,825/5,192, Duration.seconds(1),
-                0,2);
-        // How to know framesPerRow? count how many sprites are there in the png
-        // in walking.png there are 10 and divide that value to the width
+                0,4);
 
-        animPunch = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_attack_P2.png"),
+        animPunch = new AnimationChannel(FXGL.getAssetLoader().loadImage("character_2/knight_combo.png"),
                 8,1320/8,192, Duration.seconds(1),
                 0,7);
         animUlt = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_ult_P2.png"),
                 8,2376/8,192, Duration.seconds(1),
                 0,3);
 
-        animUlt = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_hit.png"),
+        // not yet implemented
+        animHit = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_hit.png"),
                 8,2376/8,192, Duration.seconds(1),
                 0,3);
 

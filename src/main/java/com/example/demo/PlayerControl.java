@@ -47,42 +47,18 @@ public class PlayerControl extends Component {
     }
 
     public PlayerControl(){
-        animIdle = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_idle.png"),
-                8,1320/8,192, Duration.seconds(1),
-                0,7);
-
-        animWalk = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_walk.png"),
-                8,1280/8,192, Duration.seconds(1),
-                0,7);
-
-        animJump = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_jump.png"),
-                5,825/5,192, Duration.seconds(1),
-                0,2);
-                // How to know framesPerRow? count how many sprites are there in the png
-                // in walking.png there are 10 and divide that value to the width
-        animEnhancedAttack = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_attack_enhanced.png"),
-                8,1320/8,192, Duration.seconds(1),
-                0,7);
-
-        animPunch = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_attack.png"),
-                8,1320/8,192, Duration.seconds(1),
-                0,7);
-
-        animHit = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_ult.png"),
-                8,2376/8,193, Duration.seconds(1),
-                0,3);
-
-        animUlt = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_ult.png"),
-                8,2376/8,192, Duration.seconds(1),
-                0,3);
-
-
-
+        CharacterFactory c = new CharacterFactory("character3");
+        animIdle = c.getAnimIdle();
+        animWalk = c.getAnimWalk();
+        animJump = c.getAnimJump();
+        animEnhancedAttack = c.getAnimEnhancedAttack();
+        animPunch = c.getAnimPunch();
+        animHit = c.getAnimHit();
+        animUlt = c.getAnimUlt();
         texture = new AnimatedTexture(animIdle);
     }
     @Override
     public void onUpdate(double tpf) { // tpf is the time passed since the last frame update
-
         if (punching) {
             punchTimer -= tpf;
 
@@ -116,7 +92,6 @@ public class PlayerControl extends Component {
                     damageApplied = true;
                 }
             }
-
             if (enhancedPunchTimer <= 0) {
                 enhancedPunching = false;
                 texture.loopAnimationChannel(animIdle);
@@ -124,8 +99,6 @@ public class PlayerControl extends Component {
                 return;
             }
         }
-
-
         if (ultActive) {
             ultTimer -= tpf;
 
@@ -139,7 +112,6 @@ public class PlayerControl extends Component {
                     damageApplied = true;
                 }
             }
-
             if (ultTimer <= 0) {
                 ultActive = false;
                 texture.loopAnimationChannel(animIdle);
@@ -147,8 +119,6 @@ public class PlayerControl extends Component {
                 return;
             }
         }
-
-
         if (!isOnGround()) {
             if (!texture.getAnimationChannel().equals(animJump)) {
                 texture.loopAnimationChannel(animJump);
@@ -235,8 +205,6 @@ public class PlayerControl extends Component {
         }
     }
 
-
-
     public void ultAttack() {
         if (ultActive) {
             return;
@@ -260,14 +228,17 @@ public class PlayerControl extends Component {
         double boxHeight = 60;
 
         // Direction: if facing right, spawn in front; if facing left, spawn behind
-        double offsetX = texture.getScaleX() > 0 ? 0 : -reach;
+        boolean facingRight = texture.getScaleX() > 0;
+
+        // Flip hitbox horizontally if facing left
+        double offsetX = facingRight ? 0 : -boxWidth;
 
         Entity hitbox = FXGL.entityBuilder()
                 .type(GameEntityType.HITBOX)
                 .at(entity.getX() + offsetX, entity.getY() + 20)
                 .bbox(new HitBox(BoundingShape.box(boxWidth, boxHeight)))
                 .collidable()
-                .with(new HitboxControl(damage, duration))
+                .with(new HitboxControl(damage, duration,GameEntityType.PLAYER))
                 .buildAndAttach();
     }
 
@@ -279,7 +250,7 @@ public class PlayerControl extends Component {
         box.setArcHeight(10);
 
         // Position relative to player (in front of them)
-        double offsetX = texture.getScaleX() > 0 ? 50 : -50;
+        double offsetX = texture.getScaleX() > 0 ? 0 : -1000;
         double screenX = entity.getX() + offsetX;
         double screenY = entity.getY() + 20;
 

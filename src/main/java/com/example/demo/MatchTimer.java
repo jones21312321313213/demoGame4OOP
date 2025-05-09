@@ -11,37 +11,56 @@ import javafx.util.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MatchTimer implements Runnable {
-
     private int timeLeft;
     private final Text timerDisplay;
     private final Runnable onTimerEnd;
-
     private Thread thread;
+    private final AtomicBoolean isPaused;
+    private final AtomicBoolean shouldStop;
+    private final Object pauseLock = new Object();
 
     public MatchTimer(int startTime, Text timerDisplay, Runnable onTimerEnd) {
         this.timeLeft = startTime;
         this.timerDisplay = timerDisplay;
         this.onTimerEnd = onTimerEnd;
+        this.isPaused = new AtomicBoolean(false);
+        this.shouldStop = new AtomicBoolean(false);
     }
 
     public void start() {
-        thread = new Thread(this);
-        thread.setDaemon(true);
-        thread.start();
+        if (thread == null || !thread.isAlive()) {
+            shouldStop.set(false);
+            thread = new Thread(this);
+            thread.setDaemon(true);
+            thread.start();
+        }
     }
 
     public void stop() {
-        if (thread != null && thread.isAlive()) {
+        shouldStop.set(true);
+        resume(); // Wake up if paused
+        if (thread != null) {
             thread.interrupt();
         }
     }
 
-    public int getTimeLeft() {
-        return timeLeft;
+    public void pause() {
+        isPaused.set(true);
     }
 
+    public void resume() {
+        isPaused.set(false);
+        synchronized (pauseLock) {
+            pauseLock.notifyAll();
+        }
+    }
+
+    public AtomicBoolean getIsPaused(){
+        return isPaused;
+    }
     @Override
     public void run() {
+        // Setup your animations (same as before)
         AtomicBoolean transitionStarted = new AtomicBoolean(false);
         ScaleTransition pulseTransition = new ScaleTransition(Duration.seconds(1), timerDisplay);
         pulseTransition.setCycleCount(ScaleTransition.INDEFINITE);
@@ -59,30 +78,42 @@ public class MatchTimer implements Runnable {
                     } else {
                         pulseTransition.setRate(1.0);
                     }
-                })
-        );
+                }
+                ));
         pulsingSpeedControl.setCycleCount(Timeline.INDEFINITE);
         pulsingSpeedControl.play();
 
         // Main countdown loop
-        while (timeLeft > 0 && !Thread.currentThread().isInterrupted()) {
+        while (timeLeft > 0 && !shouldStop.get() && !Thread.currentThread().isInterrupted()) {
             try {
+                // Handle pause state
+                if (isPaused.get()) {
+                    synchronized (pauseLock) {
+                        while (isPaused.get()) {
+                            pauseLock.wait();
+                        }
+                    }
+                }
+
                 Thread.sleep(1000);
+
+                if (!isPaused.get()) {  // Only decrement if not paused
+                    timeLeft--;
+                    Platform.runLater(() -> timerDisplay.setText(String.valueOf(timeLeft)));
+                }
+
+                if (timeLeft <= 25 && !transitionStarted.get()) {
+                    transitionStarted.set(true);
+                    Platform.runLater(() -> timerDisplay.setFill(Color.RED));
+                    pulseTransition.setRate(3.0);
+                }
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 break;
-            }
-
-            timeLeft--;
-            Platform.runLater(() -> timerDisplay.setText(String.valueOf(timeLeft)));
-
-            if (timeLeft <= 25 && !transitionStarted.get()) {
-                transitionStarted.set(true);
-                Platform.runLater(() -> timerDisplay.setFill(Color.RED));
-                pulseTransition.setRate(3.0);
             }
         }
 
-        if (timeLeft == 0) {
+        if (timeLeft == 0 && !shouldStop.get()) {
             Platform.runLater(onTimerEnd);
         }
     }

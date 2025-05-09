@@ -1,7 +1,6 @@
-package com.example.demo;
+package com.example.demo.Scenes;
 
 import com.almasb.fxgl.app.scene.IntroScene;
-import com.almasb.fxgl.app.scene.MenuType;
 import com.almasb.fxgl.dsl.FXGL;
 import javafx.animation.PauseTransition;
 import javafx.scene.control.Label;
@@ -12,7 +11,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
-import java.io.File;
 
 public class CustomIntro extends IntroScene {
 
