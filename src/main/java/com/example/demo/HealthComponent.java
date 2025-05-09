@@ -2,8 +2,9 @@ package com.example.demo;
 
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.component.Component;
-import com.almasb.fxgl.ui.FXGLButton;
-import javafx.scene.paint.Color;
+import com.example.demo.listeners.DeathListener;
+import com.example.demo.listeners.GameEntityType;
+import com.example.demo.listeners.HealthChangeListener;
 
 public class HealthComponent extends Component {
     private int health;

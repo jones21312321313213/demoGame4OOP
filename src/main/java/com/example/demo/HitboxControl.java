@@ -1,9 +1,9 @@
 package com.example.demo;
 
 import com.almasb.fxgl.dsl.FXGL;
-import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.entity.component.Component;
 import com.almasb.fxgl.time.LocalTimer;
+import com.example.demo.listeners.GameEntityType;
 import javafx.util.Duration;
 
 public class HitboxControl extends Component {

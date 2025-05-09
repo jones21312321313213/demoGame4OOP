@@ -3,31 +3,19 @@ package com.example.demo;
 
 import com.almasb.fxgl.app.GameApplication;
 import com.almasb.fxgl.app.GameSettings;
-import com.almasb.fxgl.app.scene.FXGLMenu;
 import com.almasb.fxgl.app.scene.MenuType;
-import com.almasb.fxgl.app.scene.SceneFactory;
-import com.almasb.fxgl.core.math.FXGLMath;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.entity.level.Level;
 import com.almasb.fxgl.entity.level.tiled.TMXLevelLoader;
 import com.almasb.fxgl.input.UserAction;
-import com.almasb.fxgl.particle.ParticleEmitter;
-import com.almasb.fxgl.particle.ParticleSystem;
 import com.almasb.fxgl.ui.FXGLButton;
-import com.almasb.fxgl.ui.FXGLCheckBox;
 import com.example.demo.Scenes.CustomPauseMenu;
+import com.example.demo.listeners.GameEntityType;
 import javafx.animation.*;
 import javafx.application.Platform;
-import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.effect.BlendMode;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.media.Media;
@@ -39,14 +27,14 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
-import javafx.stage.Screen;
 import javafx.util.Duration;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.HashMap;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.almasb.fxgl.dsl.FXGL.*;
 
@@ -87,6 +75,7 @@ public class HelloController extends GameApplication {
     private MatchTimer matchTimer = null;
 
     private CustomPauseMenu pauseMenu;
+    private ArrayList<GameState> gameStateList = new ArrayList<>();
 
     @Override
     protected void onPreInit(){
@@ -104,7 +93,7 @@ public class HelloController extends GameApplication {
         settings.setMainMenuEnabled(true);
         settings.setCloseConfirmation(true);
         //settings.setFullScreenAllowed(true);
-        settings.setSceneFactory(new MySceneFactory(matchTimer));
+        settings.setSceneFactory(new MySceneFactory());
 
     }
 
@@ -233,7 +222,7 @@ public class HelloController extends GameApplication {
 
     protected void initUI() {
         super.initUI();
-        pauseMenu = new CustomPauseMenu(MenuType.GAME_MENU,matchTimer);
+
     }
 
 
@@ -290,9 +279,12 @@ public class HelloController extends GameApplication {
         };
         matchTimer = new MatchTimer(matchTime, matchTimerText, onTimerEnd);
         matchTimer.start();
+        pauseMenu = new CustomPauseMenu(MenuType.GAME_MENU,matchTimer,gameStateList);
+        loadSavedGame(matchTimer);
 
         player = getGameWorld().spawn("player",100,100);
         player2 = getGameWorld().spawn("player2",1000,100);
+
         healthBar = new ProgressBar(1.0);
         healthBar.setPrefWidth(500);
         healthBar.setPrefHeight(50);
@@ -632,6 +624,67 @@ public class HelloController extends GameApplication {
                 //endMatch();
             }
         }, Duration.seconds(1));
+    }
+
+    @SuppressWarnings("unchecked")
+    private void loadSavedGame(MatchTimer matchTimer) {
+        File file = new File("savedstates.txt");
+        if (!file.exists()) {
+            System.out.println("No saved game states found.");
+            return;
+        }
+
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
+            ArrayList<GameState> savedStates = (ArrayList<GameState>) in.readObject();
+
+            if (savedStates.isEmpty()) {
+                System.out.println("Saved game state list is empty.");
+                return;
+            }
+
+            GameState gameState = savedStates.get(0); // Load the most recent state
+
+            // Restore game data into FXGL
+            FXGL.set("player1Health", gameState.getPlayer1Health());
+            FXGL.set("player2Health", gameState.getPlayer2Health());
+            FXGL.set("player1Name", gameState.getPlayer1Name());
+            FXGL.set("player2Name", gameState.getPlayer2Name());
+            FXGL.set("player1Score", gameState.getPlayer1Score());
+            FXGL.set("player2Score", gameState.getPlayer2Score());
+            FXGL.set("currentMap", gameState.getMap());
+
+            // Restore player positions
+            FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER)
+                    .stream().findFirst()
+                    .ifPresent(e -> e.setPosition(gameState.getPlayer1X(), gameState.getPlayer1Y()));
+
+            FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER2)
+                    .stream().findFirst()
+                    .ifPresent(e -> e.setPosition(gameState.getPlayer2X(), gameState.getPlayer2Y()));
+
+            // Optionally restore timer
+//            matchTimer.stop();
+//            FXGL.getGameTimer().runOnceAfter(() -> {
+//                matchTimer.setTimeLeft(gameState.getTimeLeft());
+//                matchTimer.resume();
+//            }, Duration.seconds(1));
+
+            // Debug output
+            System.out.println("Game State Loaded:");
+            System.out.println("Time Left: " + gameState.getTimeLeft());
+            System.out.println("Player 1 Health: " + gameState.getPlayer1Health());
+            System.out.println("Player 2 Health: " + gameState.getPlayer2Health());
+            System.out.println("Player 1 Name: " + gameState.getPlayer1Name());
+            System.out.println("Player 2 Name: " + gameState.getPlayer2Name());
+            System.out.println("Player 1 Score: " + gameState.getPlayer1Score());
+            System.out.println("Player 2 Score: " + gameState.getPlayer2Score());
+            System.out.println("Player 1 Position: (" + gameState.getPlayer1X() + ", " + gameState.getPlayer1Y() + ")");
+            System.out.println("Player 2 Position: (" + gameState.getPlayer2X() + ", " + gameState.getPlayer2Y() + ")");
+            System.out.println("Current Map: " + gameState.getMap());
+
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
 

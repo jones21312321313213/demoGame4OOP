@@ -1,23 +1,18 @@
 package com.example.demo;
 
 import com.almasb.fxgl.dsl.FXGL;
-import com.almasb.fxgl.dsl.components.ProjectileComponent;
 import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.entity.EntityFactory;
 import com.almasb.fxgl.entity.SpawnData;
 import com.almasb.fxgl.entity.Spawns;
-import com.almasb.fxgl.entity.components.CollidableComponent;
 import com.almasb.fxgl.physics.BoundingShape;
 import com.almasb.fxgl.physics.HitBox;
 import com.almasb.fxgl.physics.PhysicsComponent;
 import com.almasb.fxgl.physics.box2d.dynamics.BodyType;
+import com.example.demo.listeners.GameEntityType;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
-
-import java.util.List;
 
 
 public class SimpleFactory implements EntityFactory {
@@ -37,9 +32,6 @@ public class SimpleFactory implements EntityFactory {
     public Entity newPlayer(SpawnData data){
         PhysicsComponent physics = new PhysicsComponent();
         physics.setBodyType(BodyType.DYNAMIC);
-//
-//        var width = data.<Integer>get("width");
-//        var height = data.<Integer>get("height");
 
         Rectangle outline = new Rectangle(115, 195);
         outline.setFill(Color.TRANSPARENT);
@@ -53,10 +45,11 @@ public class SimpleFactory implements EntityFactory {
         return FXGL.entityBuilder(data)
                 .type(GameEntityType.PLAYER)
                 .bbox(offsetHitBox)
-                .viewWithBBox(outline)
-                .with(physics)
+                .with("id", "player1")
                 .with(new HealthComponent(100))
+                .with(physics)
                 .with(new PlayerControl())
+                .viewWithBBox(outline)
                 .build();
     }
 
@@ -64,9 +57,6 @@ public class SimpleFactory implements EntityFactory {
     public Entity newPlayer2(SpawnData data){
         PhysicsComponent physics = new PhysicsComponent();
         physics.setBodyType(BodyType.DYNAMIC);
-//
-//        var width = data.<Integer>get("width");
-//        var height = data.<Integer>get("height");
 
         Rectangle outline = new Rectangle(115, 195);
         outline.setFill(Color.TRANSPARENT);
@@ -79,14 +69,13 @@ public class SimpleFactory implements EntityFactory {
 
         return FXGL.entityBuilder(data)
                 .type(GameEntityType.PLAYER2)
-                .with(new HealthComponent(100))
                 .bbox(offsetHitBox)
-                .viewWithBBox(outline)
+                .with("id", "player2")
+                .with(new HealthComponent(100))
                 .with(physics)
                 .with(new PlayerControl2("character2"))
+                .viewWithBBox(outline)
                 .build();
     }
-
-
 
 }

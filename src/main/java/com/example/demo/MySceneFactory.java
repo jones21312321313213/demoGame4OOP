@@ -12,10 +12,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class MySceneFactory extends SceneFactory {
 
-    private MatchTimer timer;
-    public MySceneFactory(MatchTimer timer){
-        this.timer = timer;
-    }
 
     @NotNull
     @Override
@@ -23,11 +19,11 @@ public class MySceneFactory extends SceneFactory {
         return new CustomMainMenu(MenuType.MAIN_MENU);
     }
 
-    @NotNull
-    @Override
-    public FXGLMenu newGameMenu() {
-        return new CustomPauseMenu(MenuType.GAME_MENU,timer);
-    }
+//    @NotNull
+//    @Override
+//    public FXGLMenu newGameMenu() {
+//        return new CustomPauseMenu(MenuType.GAME_MENU,timer,null);
+//    }
 
     @NotNull
     @Override

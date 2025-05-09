@@ -9,12 +9,14 @@ import com.almasb.fxgl.physics.HitBox;
 import com.almasb.fxgl.physics.PhysicsComponent;
 import com.almasb.fxgl.texture.AnimatedTexture;
 import com.almasb.fxgl.texture.AnimationChannel;
-import javafx.scene.image.Image;
-import javafx.scene.text.Text;
+import com.example.demo.characters.CharacterFactory;
+import com.example.demo.listeners.GameEntityType;
 import javafx.util.Duration;
+
 
 public class PlayerControl extends Component {
     private TransformComponent position;
+
     private PhysicsComponent physics;
     private double speed = 0;
     private AnimatedTexture texture;

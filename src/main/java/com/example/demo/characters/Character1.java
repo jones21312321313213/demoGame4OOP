@@ -2,7 +2,6 @@ package com.example.demo.characters;
 
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.texture.AnimationChannel;
-import com.example.demo.CharacterComponent;
 import javafx.util.Duration;
 
 public class Character1 extends CharacterComponent {

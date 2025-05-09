@@ -1,9 +1,6 @@
-package com.example.demo;
+package com.example.demo.characters;
 
 import com.almasb.fxgl.texture.AnimationChannel;
-import com.example.demo.characters.Character1;
-import com.example.demo.characters.Character2;
-import com.example.demo.characters.Character3;
 
 public class CharacterFactory {
     private final CharacterComponent character;

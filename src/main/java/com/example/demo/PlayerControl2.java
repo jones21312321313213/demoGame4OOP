@@ -3,17 +3,15 @@ import com.almasb.fxgl.core.math.FXGLMath;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.entity.component.Component;
-import com.almasb.fxgl.entity.components.CollidableComponent;
 import com.almasb.fxgl.entity.components.TransformComponent;
 import com.almasb.fxgl.physics.BoundingShape;
 import com.almasb.fxgl.physics.HitBox;
 import com.almasb.fxgl.physics.PhysicsComponent;
 import com.almasb.fxgl.texture.AnimatedTexture;
 import com.almasb.fxgl.texture.AnimationChannel;
-import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
+import com.example.demo.characters.CharacterFactory;
+import com.example.demo.listeners.GameEntityType;
 import javafx.util.Duration;
-import javafx.geometry.Point2D;
 
 public class PlayerControl2 extends Component {
     private TransformComponent position;

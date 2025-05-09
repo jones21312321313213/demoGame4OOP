@@ -44,10 +44,17 @@ public class MatchTimer implements Runnable {
         }
     }
 
+    public void setTimeLeft(int timeLeft){
+        this.timeLeft = timeLeft;
+    }
+
     public void pause() {
         isPaused.set(true);
     }
 
+    public int getTimeLeft(){
+        return timeLeft;
+    }
     public void resume() {
         isPaused.set(false);
         synchronized (pauseLock) {

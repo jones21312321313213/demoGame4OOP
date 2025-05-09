@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.characters;
 
 import com.almasb.fxgl.entity.component.Component;
 import com.almasb.fxgl.texture.AnimationChannel;
