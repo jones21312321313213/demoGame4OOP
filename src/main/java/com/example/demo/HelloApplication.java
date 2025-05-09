@@ -25,9 +25,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.effect.BlendMode;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import javafx.scene.text.Font;
@@ -40,6 +44,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.almasb.fxgl.dsl.FXGL.*;
 
@@ -70,6 +76,14 @@ public class HelloApplication extends GameApplication {
     private double enhancedPunchCooldownTimeP2 = 5.0;
     private double remainingCooldownTimeP2 = 0.0;
     private boolean isP2CooldownActive = false;
+
+    private String[] map = {"map","map2","map3","map4","map5","map6"};
+    private String[] levels = {"Namek", "spirit_realm","chinatown","castle","bikini_bottom","cit-u"};
+
+    private Text matchTimerText;
+    private int matchTime = 103;
+
+    private MatchTimer matchTimer;
 
     @Override
     protected void onPreInit(){
@@ -151,21 +165,21 @@ public class HelloApplication extends GameApplication {
             protected void onAction(){
                 player2.getComponent(PlayerControl2.class).P2left();
             }
-        },KeyCode.J);
+        },KeyCode.LEFT);
 
         getInput().addAction(new UserAction("P2Right"){
             @Override
             protected void onAction(){
                 player2.getComponent(PlayerControl2.class).P2right();
             }
-        },KeyCode.L);
+        },KeyCode.RIGHT);
 
         getInput().addAction(new UserAction("P2Jump"){
             @Override
             protected void onAction(){
                 player2.getComponent(PlayerControl2.class).P2up();
             }
-        },KeyCode.I);
+        },KeyCode.UP);
 
         getInput().addAction(new UserAction("P2Punch"){
             @Override
@@ -203,14 +217,66 @@ public class HelloApplication extends GameApplication {
         getPhysicsWorld().setGravity(0, 195);
     }
 
+    protected void initUI() {
+        super.initUI();
+    }
+
+
     @Override
-    protected void initGame(){
+    protected void initGame() {
         getGameWorld().addEntityFactory(new SimpleFactory());
-      Level level = getAssetLoader().loadLevel("tmx/map.tmx", new TMXLevelLoader());
-      getGameWorld().setLevel(level);
 
+        Random random = new Random();
+        int number = random.nextInt(6);
 
-      player = getGameWorld().spawn("player",100,100);
+        Platform.runLater(() -> {
+            String videoPath = getClass().getResource("/assets/textures/" + levels[number] + ".mp4").toExternalForm();
+            Media media = new Media(videoPath);
+            MediaPlayer mediaPlayer = new MediaPlayer(media);
+            MediaView mediaView = new MediaView(mediaPlayer);
+            mediaView.setViewOrder(-1000);
+
+            mediaView.setPreserveRatio(false);
+            mediaView.fitWidthProperty().bind(FXGL.getGameScene().getViewport().widthProperty());
+            mediaView.fitHeightProperty().bind(FXGL.getGameScene().getViewport().heightProperty());
+
+            FXGL.getGameScene().addUINode(mediaView);
+            mediaPlayer.play();
+
+            mediaPlayer.setOnEndOfMedia(() -> {
+                FXGL.getGameScene().removeUINode(mediaView);
+            });
+            mediaPlayer.setOnError(() -> System.out.println("Media error: " + mediaPlayer.getError()));
+        });
+
+        Level level = getAssetLoader().loadLevel("tmx/" + map[number] + ".tmx", new TMXLevelLoader());
+        getGameWorld().setLevel(level);
+
+        matchTimerText = new Text(String.valueOf(matchTime));
+        matchTimerText.setTranslateX(FXGL.getAppWidth() / 2);
+        matchTimerText.setTranslateY(80);
+        matchTimerText.setStyle("-fx-font-size: 80px; -fx-font-weight: bold;");
+        matchTimerText.setFill(Color.BLACK);
+        matchTimerText.setStroke(Color.WHITE);
+        matchTimerText.setStrokeWidth(2);
+        FXGL.getGameScene().addUINode(matchTimerText);
+
+        Runnable onTimerEnd = () -> {
+            int p1Health = player.getComponent(HealthComponent.class).getHealth();
+            int p2Health = player2.getComponent(HealthComponent.class).getHealth();
+
+            if (p1Health > p2Health) {
+                onPlayerDied(GameEntityType.PLAYER2);
+            } else if (p2Health > p1Health) {
+                onPlayerDied(GameEntityType.PLAYER);
+            } else {
+                showGameOverScreen("It's a Draw!");
+            }
+        };
+        matchTimer = new MatchTimer(matchTime, matchTimerText, onTimerEnd);
+        matchTimer.start();
+
+        player = getGameWorld().spawn("player",100,100);
       player2 = getGameWorld().spawn("player2",1000,100);
 
       healthBar = new ProgressBar(1.0);
@@ -329,7 +395,7 @@ public class HelloApplication extends GameApplication {
         if (newHealth <= 50 && !P2Ult) {
             isUltAvailableForP2 = true;
             ultAvailableTextP2.setVisible(true);
-            System.out.println("ULT is now available for Player 2.");
+            //System.out.println("ULT is now available for Player 2.");
         } else {
             isUltAvailableForP2 = false;
             ultAvailableTextP2.setVisible(false);
@@ -337,15 +403,15 @@ public class HelloApplication extends GameApplication {
     }
 
     private void updateHealthBarPlayer2(int newHealth) {
-        System.out.println("Player 2 health changed: " + newHealth);
+        //System.out.println("Player 2 health changed: " + newHealth);
         if (newHealth <= 50 && !P1Ult) {
             isUltAvailableForP1 = true;
             ultAvailableText.setVisible(true);
-            System.out.println("ULT is now available for Player 1.");
+            //System.out.println("ULT is now available for Player 1.");
         } else {
             isUltAvailableForP1 = false;
             ultAvailableText.setVisible(false);
-            System.out.println("ULT is not available for Player 1.");
+            //System.out.println("ULT is not available for Player 1.");
         }
         healthBar2.setProgress(newHealth / 100.0);
     }
@@ -456,18 +522,18 @@ public class HelloApplication extends GameApplication {
     }
 
     private void addStar(HBox starBox) {
-        System.out.println("Adding star to " + starBox);  // Debugging line
+        //System.out.println("Adding star to " + starBox);  // Debugging line
 
         javafx.scene.shape.Circle circle = new javafx.scene.shape.Circle(25);
         circle.setFill(Color.YELLOW);
 
         Platform.runLater(() -> {
             starBox.getChildren().add(circle);
-            System.out.println("Children count: " + starBox.getChildren().size());
+            //System.out.println("Children count: " + starBox.getChildren().size());
 
             starBox.requestLayout();
 
-            System.out.println("Star added: " + circle);
+            //System.out.println("Star added: " + circle);
         });
     }
     private void startEnhancedPunchCooldown() {
@@ -529,17 +595,29 @@ public class HelloApplication extends GameApplication {
 
 
     private void onPlayer2HealthChanged(int newHealth) {
-        System.out.println("Player 2 health changed: " + newHealth);
+        //System.out.println("Player 2 health changed: " + newHealth);
         if (newHealth <= 50) {
             isUltAvailableForP1 = true;
             ultAvailableText.setVisible(true);
-            System.out.println("ULT is now available for Player 1.");
+            //System.out.println("ULT is now available for Player 1.");
         } else {
             isUltAvailableForP1 = false;
             ultAvailableText.setVisible(false);
-            System.out.println("ULT is not available for Player 1.");
+            //System.out.println("ULT is not available for Player 1.");
         }
     }
+
+    private void startMatchTimer() {
+        FXGL.getGameTimer().runAtInterval(() -> {
+            matchTime--;
+            matchTimerText.setText(String.valueOf(matchTime));
+
+            if (matchTime <= 0) {
+                //endMatch();
+            }
+        }, Duration.seconds(1));
+    }
+
 
 
     public static void main(String[] args) {

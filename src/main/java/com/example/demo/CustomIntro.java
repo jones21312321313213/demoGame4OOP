@@ -26,12 +26,14 @@ public class CustomIntro extends IntroScene {
             // Load the video file (replace with your actual video path)
             // For development, you might want to put the video in src/main/resources
             String videoPath = getClass().getResource("/assets/textures/intro.mp4").toExternalForm();
-
+            // Or if packaged in a JAR:
+            // String videoPath = getClass().getResource("/intro.mp4").toExternalForm();
 
             Media media = new Media(videoPath);
             mediaPlayer = new MediaPlayer(media);
             MediaView mediaView = new MediaView(mediaPlayer);
 
+            // Set the size to match the game window
             mediaView.setFitWidth(FXGL.getAppWidth());
             mediaView.setFitHeight(FXGL.getAppHeight());
 
@@ -41,7 +43,7 @@ public class CustomIntro extends IntroScene {
             System.err.println("Error loading video: " + e.getMessage());
             e.printStackTrace();
 
-            //fallback if video fails(temp)
+            // Fallback to text if video fails
             Label label = new Label("Welcome to Stictactics");
             label.setFont(Font.font("Arial", FontWeight.BOLD, 36));
             label.setTextFill(Color.WHITE);

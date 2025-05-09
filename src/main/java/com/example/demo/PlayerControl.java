@@ -47,14 +47,37 @@ public class PlayerControl extends Component {
     }
 
     public PlayerControl(){
-        CharacterFactory c = new CharacterFactory("character1");
-        animIdle = c.getAnimIdle();
-        animWalk = c.getAnimWalk();
-        animJump = c.getAnimJump();
-        animEnhancedAttack = c.getAnimEnhancedAttack();
-        animPunch = c.getAnimPunch();
-        animHit = c.getAnimHit();
-        animUlt = c.getAnimUlt();
+        animIdle = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_idle.png"),
+                8,1320/8,192, Duration.seconds(1),
+                0,7);
+
+        animWalk = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_walk.png"),
+                8,1280/8,192, Duration.seconds(1),
+                0,7);
+
+        animJump = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_jump.png"),
+                5,825/5,192, Duration.seconds(1),
+                0,2);
+                // How to know framesPerRow? count how many sprites are there in the png
+                // in walking.png there are 10 and divide that value to the width
+        animEnhancedAttack = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_attack_enhanced.png"),
+                8,1320/8,192, Duration.seconds(1),
+                0,7);
+
+        animPunch = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_attack.png"),
+                8,1320/8,192, Duration.seconds(1),
+                0,7);
+
+        animHit = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_ult.png"),
+                8,2376/8,193, Duration.seconds(1),
+                0,3);
+
+        animUlt = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_ult.png"),
+                8,2376/8,192, Duration.seconds(1),
+                0,3);
+
+
+
         texture = new AnimatedTexture(animIdle);
     }
     @Override
@@ -128,7 +151,7 @@ public class PlayerControl extends Component {
 
         if (!isOnGround()) {
             if (!texture.getAnimationChannel().equals(animJump)) {
-                texture.playAnimationChannel(animJump);
+                texture.loopAnimationChannel(animJump);
             }
         } else if (isMoving()) {
             if (!texture.getAnimationChannel().equals(animWalk)) {
@@ -167,8 +190,8 @@ public class PlayerControl extends Component {
     public void up() {
 
         if (isOnGround()) {
-            physics.setVelocityY(-195);
-            texture.playAnimationChannel(animJump);
+            physics.setVelocityY(-300);
+            texture.loopAnimationChannel(animJump);
         }
     }
 
@@ -185,7 +208,7 @@ public class PlayerControl extends Component {
 
     public void right() {
         texture.setScaleX(1);
-        physics.setVelocityX(150);
+        physics.setVelocityX(100);
         texture.loopAnimationChannel(animWalk);
 
     }
@@ -232,14 +255,12 @@ public class PlayerControl extends Component {
     }
 
     private void spawnHitbox(int damage, Duration duration) {
-        double reach = 1000; // Max horizontal range
+        double reach = 1000; // Attack range
         double boxWidth = reach;
         double boxHeight = 60;
 
-        boolean facingRight = texture.getScaleX() > 0;
-
-        // Flip hitbox horizontally if facing left
-        double offsetX = facingRight ? 0 : -boxWidth;
+        // Direction: if facing right, spawn in front; if facing left, spawn behind
+        double offsetX = texture.getScaleX() > 0 ? 0 : -reach;
 
         Entity hitbox = FXGL.entityBuilder()
                 .type(GameEntityType.HITBOX)
@@ -248,24 +269,17 @@ public class PlayerControl extends Component {
                 .collidable()
                 .with(new HitboxControl(damage, duration))
                 .buildAndAttach();
-
     }
 
 
-
     private void showHitboxEffect() {
-        double boxWidth = 1000;
-        double boxHeight = 40;
-
-        boolean facingRight = texture.getScaleX() > 0;
-
-        javafx.scene.shape.Rectangle box = new javafx.scene.shape.Rectangle(boxWidth, boxHeight);
+        javafx.scene.shape.Rectangle box = new javafx.scene.shape.Rectangle(1000, 40);
         box.setFill(javafx.scene.paint.Color.RED.deriveColor(1, 1, 1, 0.4));
         box.setArcWidth(10);
         box.setArcHeight(10);
 
-        // Position in front of the player based on direction
-        double offsetX = facingRight ? 50 : -boxWidth + 50;
+        // Position relative to player (in front of them)
+        double offsetX = texture.getScaleX() > 0 ? 50 : -50;
         double screenX = entity.getX() + offsetX;
         double screenY = entity.getY() + 20;
 
@@ -277,6 +291,7 @@ public class PlayerControl extends Component {
         // Remove after short duration
         FXGL.getGameTimer().runOnceAfter(() -> FXGL.getGameScene().removeUINode(box), Duration.seconds(0.3));
     }
+
 
 
     public void playHitAnimation() {
