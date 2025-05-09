@@ -68,9 +68,9 @@ public class PlayerControl extends Component {
                 8,1320/8,192, Duration.seconds(1),
                 0,7);
 
-        animHit = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_ult.png"),
-                8,2376/8,193, Duration.seconds(1),
-                0,3);
+        animHit = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_hit.png"),
+                4,580/4,195, Duration.seconds(1),
+                0,0);
 
         animUlt = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_ult.png"),
                 8,2376/8,192, Duration.seconds(1),
@@ -147,7 +147,6 @@ public class PlayerControl extends Component {
                 return;
             }
         }
-
 
         if (!isOnGround()) {
             if (!texture.getAnimationChannel().equals(animJump)) {
@@ -267,7 +266,7 @@ public class PlayerControl extends Component {
                 .at(entity.getX() + offsetX, entity.getY() + 20)
                 .bbox(new HitBox(BoundingShape.box(boxWidth, boxHeight)))
                 .collidable()
-                .with(new HitboxControl(damage, duration))
+                .with(new HitboxControl(damage, duration, GameEntityType.PLAYER))
                 .buildAndAttach();
     }
 

@@ -10,10 +10,12 @@ public class HitboxControl extends Component {
     private int damage;
     private LocalTimer timer;
     private Duration duration;
+    private GameEntityType ownerType; // Who spawned this hitbox?
 
-    public HitboxControl(int damage, Duration duration) {
+    public HitboxControl(int damage, Duration duration, GameEntityType ownerType) {
         this.damage = damage;
         this.duration = duration;
+        this.ownerType = ownerType;
     }
 
     @Override
@@ -29,16 +31,19 @@ public class HitboxControl extends Component {
             return;
         }
 
-        // Check for collisions with PLAYER2
+        GameEntityType targetType = (ownerType == GameEntityType.PLAYER)
+                ? GameEntityType.PLAYER2
+                : GameEntityType.PLAYER;
+
         FXGL.getGameWorld()
-                .getEntitiesByType(GameEntityType.PLAYER2)
+                .getEntitiesByType(targetType)
                 .stream()
-                .filter(player2 -> entity.isColliding(player2))
-                .forEach(player2 -> {
-                    HealthComponent health = player2.getComponent(HealthComponent.class);
+                .filter(player -> entity.isColliding(player))
+                .forEach(player -> {
+                    HealthComponent health = player.getComponent(HealthComponent.class);
                     if (health != null) {
                         health.takeDamage(damage);
-                        System.out.println("Player 2 took " + damage + " damage!");
+                        System.out.println(targetType + " took " + damage + " damage!");
                     }
                     entity.removeFromWorld();
                 });

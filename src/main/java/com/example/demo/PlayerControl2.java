@@ -203,6 +203,8 @@ public class PlayerControl2 extends Component {
             punchTimer = punchDuration.toSeconds();
             damageApplied = false;
             texture.playAnimationChannel(animPunch);
+            showHitboxEffect();
+            spawnHitbox(10, Duration.seconds(0.3));
         }
     }
     public void P2enhancedPunch() {
@@ -231,6 +233,43 @@ public class PlayerControl2 extends Component {
         ultTimer = ultDuration;
         damageApplied = false;
     }
+
+    private void spawnHitbox(int damage, Duration duration) {
+        double reach = 1000;
+        double boxWidth = reach;
+        double boxHeight = 60;
+
+        // ✅ Fix direction logic based on facing direction
+        double offsetX = texture.getScaleX() < 0 ? reach : -reach;
+
+        Entity hitbox = FXGL.entityBuilder()
+                .type(GameEntityType.HITBOX)
+                .at(entity.getX() + offsetX, entity.getY() + 20)
+                .bbox(new HitBox(BoundingShape.box(boxWidth, boxHeight)))
+                .collidable()
+                .with(new HitboxControl(damage, duration, GameEntityType.PLAYER2))
+                .buildAndAttach();
+    }
+
+    private void showHitboxEffect() {
+        javafx.scene.shape.Rectangle box = new javafx.scene.shape.Rectangle(1000, 40);
+        box.setFill(javafx.scene.paint.Color.RED.deriveColor(1, 1, 1, 0.4));
+        box.setArcWidth(10);
+        box.setArcHeight(10);
+
+        // ✅ Fix visual direction logic
+        double offsetX = texture.getScaleX() < 0 ? 0 : -1000;
+        double screenX = entity.getX() + offsetX;
+        double screenY = entity.getY() + 20;
+
+        box.setLayoutX(screenX);
+        box.setLayoutY(screenY);
+
+        FXGL.getGameScene().addUINode(box);
+
+        FXGL.getGameTimer().runOnceAfter(() -> FXGL.getGameScene().removeUINode(box), Duration.seconds(0.3));
+    }
+
 
 
 }
