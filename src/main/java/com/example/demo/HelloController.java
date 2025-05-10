@@ -299,13 +299,6 @@ public class HelloController extends GameApplication {
         } else {
             try {
                 mapToLoad = MapManager.getInstance().getCurrentMap();
-                mapIndex = findMapIndex(mapToLoad);
-                if (mapIndex == -1) {
-                    System.out.println("Saved map not found, falling back to random.");
-                    mapIndex = new Random().nextInt(map.length);
-                    //mapToLoad = map[mapIndex];
-
-                }
             } catch (Exception e) {
                 System.out.println("Error loading saved map: " + e);
                 mapIndex = new Random().nextInt(map.length);
@@ -325,13 +318,6 @@ public class HelloController extends GameApplication {
             getGameWorld().setLevel(fallback);
         }
 
-
-
-
-
-//        FXGL.getGameTimer().runOnceAfter(() -> {
-//            loadSavedGame(matchTimer);
-//        }, Duration.seconds(1)); // Delay slightly to ensure entities are in the world
 
         if(RoundStateManager.getInstance().isStartOfRound() || isFirstLaunch) {
             player = getGameWorld().spawn("player", 100, 100);
@@ -612,9 +598,25 @@ public class HelloController extends GameApplication {
     }
 
     private void backToMainMenu() {
+        // Reset all game state variables
         isFirstLaunch = true;
         p1Score = 0;
         p2Score = 0;
+        P1Ult = false;
+        P2Ult = false;
+        isUltAvailableForP1 = false;
+        isUltAvailableForP2 = false;
+
+        // Clear any saved state
+        gameStateList.clear();
+        File file = new File("savedstates.txt");
+        if (file.exists()) {
+            file.delete();
+        }
+        // Reset UI elements
+        if (p1Star != null) p1Star.getChildren().clear();
+        if (p2Star != null) p2Star.getChildren().clear();
+
         FXGL.getGameController().resumeEngine();
         FXGL.getGameController().gotoMainMenu();
     }
@@ -649,9 +651,26 @@ public class HelloController extends GameApplication {
     }
 
     private void restartMatch() {
+        // Reset all game state variables
         p1Score = 0;
         p2Score = 0;
         isFirstLaunch = true;
+        P1Ult = false;
+        P2Ult = false;
+        isUltAvailableForP1 = false;
+        isUltAvailableForP2 = false;
+
+        // Clear any saved state
+        gameStateList.clear();
+        File file = new File("savedstates.txt");
+        if (file.exists()) {
+            file.delete();
+        }
+
+        // Reset UI elements
+        if (p1Star != null) p1Star.getChildren().clear();
+        if (p2Star != null) p2Star.getChildren().clear();
+
         FXGL.getGameController().resumeEngine();
         FXGL.getGameController().startNewGame();
     }
