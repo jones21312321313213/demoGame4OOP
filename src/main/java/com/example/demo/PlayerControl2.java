@@ -9,7 +9,7 @@ import com.almasb.fxgl.physics.HitBox;
 import com.almasb.fxgl.physics.PhysicsComponent;
 import com.almasb.fxgl.texture.AnimatedTexture;
 import com.almasb.fxgl.texture.AnimationChannel;
-import com.example.demo.characters.CharacterFactory;
+import com.example.demo.Factory.CharacterFactory;
 import com.example.demo.listeners.GameEntityType;
 import javafx.util.Duration;
 

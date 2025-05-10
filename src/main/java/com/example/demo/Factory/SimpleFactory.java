@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.Factory;
 
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
@@ -9,6 +9,10 @@ import com.almasb.fxgl.physics.BoundingShape;
 import com.almasb.fxgl.physics.HitBox;
 import com.almasb.fxgl.physics.PhysicsComponent;
 import com.almasb.fxgl.physics.box2d.dynamics.BodyType;
+import com.example.demo.HealthComponent;
+import com.example.demo.HelloController;
+import com.example.demo.PlayerControl;
+import com.example.demo.PlayerControl2;
 import com.example.demo.listeners.GameEntityType;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;

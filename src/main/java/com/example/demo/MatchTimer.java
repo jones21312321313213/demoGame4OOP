@@ -46,6 +46,7 @@ public class MatchTimer implements Runnable {
 
     public void setTimeLeft(int timeLeft){
         this.timeLeft = timeLeft;
+        updateTimerText();
     }
 
     public void pause() {
@@ -60,6 +61,12 @@ public class MatchTimer implements Runnable {
         synchronized (pauseLock) {
             pauseLock.notifyAll();
         }
+    }
+    private void updateTimerText() {
+        Platform.runLater(() -> {
+            timerDisplay.setText(String.valueOf(timeLeft));
+            resume();
+        });
     }
 
     public AtomicBoolean getIsPaused(){

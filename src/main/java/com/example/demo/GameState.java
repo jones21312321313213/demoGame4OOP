@@ -14,14 +14,15 @@ public class GameState implements Serializable {
     private int player2Score;
     private double player1X, player1Y;
     private double player2X, player2Y;
-    private String map;
+    private String currentMap;
+    private String currentLevel;
 
     public GameState(int timeLeft, int player1Health, int player2Health,
                      String player1Name, String player2Name,
                      int player1Score, int player2Score,
                      double player1X, double player1Y,
                      double player2X, double player2Y,
-                     String map) {
+                     String currentMap,String currentLevel) {
 
         this.timeLeft = timeLeft;
         this.player1Health = player1Health;
@@ -34,7 +35,8 @@ public class GameState implements Serializable {
         this.player1Y = player1Y;
         this.player2X = player2X;
         this.player2Y = player2Y;
-        this.map = map;
+        this.currentMap = currentMap;
+        this.currentLevel = currentLevel;
     }
 
     public int getTimeLeft() {
@@ -82,7 +84,10 @@ public class GameState implements Serializable {
     }
 
     public String getMap() {
-        return map;
+        return currentMap;
+    }
+    public String getCurrentLevel(){
+        return currentLevel;
     }
 
 
@@ -100,7 +105,7 @@ public class GameState implements Serializable {
                 ", player1Y=" + player1Y +
                 ", player2X=" + player2X +
                 ", player2Y=" + player2Y +
-                ", map='" + map + '\'' +
+                ", map='" + currentMap + '\'' +
                 '}';
     }
 

@@ -5,15 +5,16 @@ import com.almasb.fxgl.app.scene.MenuType;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
 import com.example.demo.*;
+import com.example.demo.Singletons.MapManager;
+import com.example.demo.Singletons.RoundStateManager;
 import com.example.demo.listeners.GameEntityType;
 import javafx.scene.control.Button;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
+import javax.xml.transform.Source;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 
 public class CustomPauseMenu extends FXGLMenu {
@@ -84,23 +85,15 @@ public class CustomPauseMenu extends FXGLMenu {
 
             String player1Name = "Heloo ";
             String player2Name = " World";
-//            int player1Health = FXGL.geti("player1Health");
-//            int player2Health = FXGL.geti("player2Health");
 
 
+            int player1Score = FXGL.geti("player1Score");
+            int player2Score = FXGL.geti("player2Score");
 
-//            int player1Score = FXGL.geti("player1Score");
-//            int player2Score = FXGL.geti("player2Score");
-            int player1Score = 123445;
-            int player2Score = 1122;
-
-
-//            String map = FXGL.gets("currentMap");
-            String map =  "idk";
+            String map = MapManager.getInstance().getCurrentMap();
 
             Entity player1 = FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER).get(0);
             Entity player2 = FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER2).get(0);
-
             double x1 = 0.0;
             double y1 = 0.0;
             double x2 = 0.0;
@@ -114,12 +107,8 @@ public class CustomPauseMenu extends FXGLMenu {
                 x2 = player2.getX();
                 y2 = player2.getY();
             }
-
-            //          String player1Name = "player1";
-//            String player2Name = "player2";
             int player1Health =   player1.getComponent(HealthComponent.class).getHealth();
             int player2Health = player2.getComponent(HealthComponent.class).getHealth();
-
 
             GameState gameState = new GameState(
                     timeLeft,
@@ -133,16 +122,14 @@ public class CustomPauseMenu extends FXGLMenu {
                     y1,
                     x2,
                     y2,
-                    map
+                    map,
+                    "currentLevel"
             );
-
             // Add to the front of the list (most recent first)
             gameStateList.add(gameState);
-
             while (gameStateList.size() > 5) {
                 gameStateList.remove(0);  // Remove oldest
             }
-
             // Serialize and save the list to a file
             try (FileOutputStream fileOut = new FileOutputStream("savedstates.txt");
                  ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
@@ -150,11 +137,10 @@ public class CustomPauseMenu extends FXGLMenu {
                 System.out.println("Game state saved. Total saved states: " + gameStateList.size());
                 System.out.println(x1 + " "+ y1 + " " + x2 +" " + y2);
                 System.out.println(player1Health + " " + player2Health);
+                System.out.println("Time left: " + timeLeft);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
-
 }

@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.Factory;
 
 import com.almasb.fxgl.app.scene.FXGLMenu;
 import com.almasb.fxgl.app.scene.IntroScene;
@@ -6,8 +6,6 @@ import com.almasb.fxgl.app.scene.SceneFactory;
 import com.almasb.fxgl.app.scene.MenuType;
 import com.example.demo.Scenes.CustomIntro;
 import com.example.demo.Scenes.CustomMainMenu;
-import com.example.demo.Scenes.CustomPauseMenu;
-import javafx.css.Match;
 import org.jetbrains.annotations.NotNull;
 
 public class MySceneFactory extends SceneFactory {

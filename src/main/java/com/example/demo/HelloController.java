@@ -10,7 +10,11 @@ import com.almasb.fxgl.entity.level.Level;
 import com.almasb.fxgl.entity.level.tiled.TMXLevelLoader;
 import com.almasb.fxgl.input.UserAction;
 import com.almasb.fxgl.ui.FXGLButton;
+import com.example.demo.Factory.MySceneFactory;
+import com.example.demo.Factory.SimpleFactory;
 import com.example.demo.Scenes.CustomPauseMenu;
+import com.example.demo.Singletons.MapManager;
+import com.example.demo.Singletons.RoundStateManager;
 import com.example.demo.listeners.GameEntityType;
 import javafx.animation.*;
 import javafx.application.Platform;
@@ -231,39 +235,17 @@ public class HelloController extends GameApplication {
 
     }
 
-
-
    // public int temp = 100 , temp2= 100;
     @Override
     protected void initGame() {
 
         getGameWorld().addEntityFactory(new SimpleFactory());
-
-        Random random = new Random();
-        int number = random.nextInt(6);
-
-        Platform.runLater(() -> {
-            String videoPath = getClass().getResource("/assets/textures/" + levels[number] + ".mp4").toExternalForm();
-            Media media = new Media(videoPath);
-            MediaPlayer mediaPlayer = new MediaPlayer(media);
-            MediaView mediaView = new MediaView(mediaPlayer);
-            mediaView.setViewOrder(-1000);
-
-            mediaView.setPreserveRatio(false);
-            mediaView.fitWidthProperty().bind(FXGL.getGameScene().getViewport().widthProperty());
-            mediaView.fitHeightProperty().bind(FXGL.getGameScene().getViewport().heightProperty());
-
-            FXGL.getGameScene().addUINode(mediaView);
-            mediaPlayer.play();
-
-            mediaPlayer.setOnEndOfMedia(() -> {
-                FXGL.getGameScene().removeUINode(mediaView);
-            });
-            mediaPlayer.setOnError(() -> System.out.println("Media error: " + mediaPlayer.getError()));
-        });
-
-        Level level = getAssetLoader().loadLevel("tmx/" + map[number] + ".tmx", new TMXLevelLoader());
-        getGameWorld().setLevel(level);
+        // First, determine which map/level to use
+        FXGL.set("player1Score", p1Score);
+        FXGL.set("player2Score", p2Score);
+        int mapIndex;
+        String mapToLoad;
+        String levelToLoad;
 
         matchTimerText = new Text(String.valueOf(matchTime));
         matchTimerText.setTranslateX(FXGL.getAppWidth() / 2);
@@ -286,8 +268,67 @@ public class HelloController extends GameApplication {
             }
         };
         matchTimer = new MatchTimer(matchTime, matchTimerText, onTimerEnd);
-        matchTimer.start();
+
+        if (isFirstLaunch || RoundStateManager.getInstance().isStartOfRound()) {
+            mapIndex = new Random().nextInt(map.length);
+            mapToLoad = map[mapIndex];
+            levelToLoad = levels[mapIndex];
+            matchTimer.start();
+            FXGL.set("currentMap", mapToLoad);
+            MapManager.getInstance().setCurrentMap(mapToLoad);
+            // Load background video
+            try {
+                String videoPath = getClass().getResource("/assets/textures/" + levelToLoad + ".mp4").toExternalForm();
+                Media media = new Media(videoPath);
+                MediaPlayer mediaPlayer = new MediaPlayer(media);
+                MediaView mediaView = new MediaView(mediaPlayer);
+                mediaView.setViewOrder(-1000);
+
+                mediaView.setPreserveRatio(false);
+                mediaView.fitWidthProperty().bind(FXGL.getGameScene().getViewport().widthProperty());
+                mediaView.fitHeightProperty().bind(FXGL.getGameScene().getViewport().heightProperty());
+
+                FXGL.getGameScene().addUINode(mediaView);
+                mediaPlayer.play();
+
+                mediaPlayer.setOnEndOfMedia(() -> FXGL.getGameScene().removeUINode(mediaView));
+                mediaPlayer.setOnError(() -> System.out.println("Media error: " + mediaPlayer.getError()));
+            } catch (Exception e) {
+                System.out.println("Error loading background video: " + e);
+            }
+        } else {
+            try {
+                mapToLoad = MapManager.getInstance().getCurrentMap();
+                mapIndex = findMapIndex(mapToLoad);
+                if (mapIndex == -1) {
+                    System.out.println("Saved map not found, falling back to random.");
+                    mapIndex = new Random().nextInt(map.length);
+                    //mapToLoad = map[mapIndex];
+
+                }
+            } catch (Exception e) {
+                System.out.println("Error loading saved map: " + e);
+                mapIndex = new Random().nextInt(map.length);
+                mapToLoad = map[mapIndex];
+
+            }
+        }
         pauseMenu = new CustomPauseMenu(MenuType.GAME_MENU,matchTimer,gameStateList);
+
+    // Always load the level (for both new and saved games)
+        try {
+            Level level = getAssetLoader().loadLevel("tmx/" + mapToLoad + ".tmx", new TMXLevelLoader());
+            getGameWorld().setLevel(level);
+        } catch (Exception e) {
+            System.out.println("Error loading level, using fallback: " + e);
+            Level fallback = getAssetLoader().loadLevel("tmx/map.tmx", new TMXLevelLoader());
+            getGameWorld().setLevel(fallback);
+        }
+
+
+
+
+
 //        FXGL.getGameTimer().runOnceAfter(() -> {
 //            loadSavedGame(matchTimer);
 //        }, Duration.seconds(1)); // Delay slightly to ensure entities are in the world
@@ -312,9 +353,7 @@ public class HelloController extends GameApplication {
                 player2 = getGameWorld().spawn("player2", 1000, 100);
                 System.out.println("Error spawning player2: " + e);
             }
-
         }
-
 
         healthBar = new ProgressBar(1.0);
         healthBar.setPrefWidth(500);
@@ -425,7 +464,6 @@ public class HelloController extends GameApplication {
         } else {
             // Loading saved game - health will be set by loadSavedGame
             loadSavedGame(matchTimer);
-
             // Make sure the UI reflects the loaded health values
             if (player != null && player.hasComponent(HealthComponent.class)) {
                 updateHealthBar(player.getComponent(HealthComponent.class).getHealth());
@@ -447,7 +485,6 @@ public class HelloController extends GameApplication {
         p2Star.layout();
         p1Star.requestLayout();
         p2Star.requestLayout();
-
     }
 
     private boolean hasLoaded = false;
@@ -490,31 +527,44 @@ public class HelloController extends GameApplication {
 
 
     private void onPlayerDied(GameEntityType deadPlayerType) {
-        if (deadPlayerType == GameEntityType.PLAYER) {
+        // First check if this death will result in a match win
+        if ((deadPlayerType == GameEntityType.PLAYER && p2Score + 1 >= 3)) {
             p2Score++;
-        } else if (deadPlayerType == GameEntityType.PLAYER2) {
-            p1Score++;
-        }
-
-        if (p1Score >= 3) {
-            showGameOverScreen("Player 1 Wins the Match!");
-        } else if (p2Score >= 3) {
             showGameOverScreen("Player 2 Wins the Match!");
+        } else if (deadPlayerType == GameEntityType.PLAYER2 && p1Score + 1 >= 3) {
+            p1Score++;
+            showGameOverScreen("Player 1 Wins the Match!");
         } else {
+            // Only increment score for round wins, not match wins
+            if (deadPlayerType == GameEntityType.PLAYER) {
+                p2Score++;
+            } else {
+                p1Score++;
+            }
             showRoundWinScreen(deadPlayerType);
         }
-
     }
 
     private void showRoundWinScreen(GameEntityType deadPlayerType) {
         RoundStateManager.getInstance().setStartOfRound(true);
         FXGL.getGameScene().clearUINodes();
 
-        String winner = (deadPlayerType == GameEntityType.PLAYER) ? "Player 2" : "Player 1";
+        // Update stars display before showing the win screen
+        p1Star.getChildren().clear();
+        p2Star.getChildren().clear();
 
+        for (int i = 0; i < p1Score; i++) {
+            addStar(p1Star);
+        }
+        for (int i = 0; i < p2Score; i++) {
+            addStar(p2Star);
+        }
+
+        String winner = (deadPlayerType == GameEntityType.PLAYER) ? "Player 2" : "Player 1";
         var message = FXGL.getUIFactoryService().newText(winner + " wins the round!", 36);
         message.setFill(Color.GREEN);
 
+        // Rest of the method remains the same...
         FXGLButton nextRoundButton = new FXGLButton("Next Round");
         nextRoundButton.setOnAction(e -> startNextRound());
 
@@ -526,11 +576,10 @@ public class HelloController extends GameApplication {
         double centerX = 1920 / 2.0;
         double centerY = 1080 / 2.0;
 
-        dialogBox.setLayoutX(centerX - 150); // 300/2
+        dialogBox.setLayoutX(centerX - 150);
         dialogBox.setLayoutY(centerY - 100);
 
         FXGL.getGameScene().addUINode(dialogBox);
-
         FXGL.getGameController().pauseEngine();
     }
 
@@ -571,26 +620,34 @@ public class HelloController extends GameApplication {
     }
 
     private void startNextRound() {
+        // Clear existing stars
         p1Star.getChildren().clear();
         p2Star.getChildren().clear();
 
-        if (p1Score == 0) {
+        // Add stars based on current scores
+        for (int i = 0; i < p1Score; i++) {
             addStar(p1Star);
         }
-        if (p2Score == 0) {
+        for (int i = 0; i < p2Score; i++) {
             addStar(p2Star);
         }
+
+        // Reset cooldowns and ult flags
         isCooldownActive = false;
         isP2CooldownActive = false;
+        P1Ult = false;
+        P2Ult = false;
+
+        // Request layout updates
         p1Star.layout();
         p2Star.layout();
         p1Star.requestLayout();
         p2Star.requestLayout();
-        P1Ult = false;
-        P2Ult = false;
+
         FXGL.getGameController().resumeEngine();
         FXGL.getGameController().startNewGame();
     }
+
     private void restartMatch() {
         p1Score = 0;
         p2Score = 0;
@@ -685,6 +742,15 @@ public class HelloController extends GameApplication {
         }
     }
 
+    private int findMapIndex(String mapName) {
+        for (int i = 0; i < map.length; i++) {
+            if (map[i].equals(mapName)) {
+                return i;
+            }
+        }
+        return -1; // default to first map if not found
+    }
+
     private void startMatchTimer() {
         FXGL.getGameTimer().runAtInterval(() -> {
             matchTime--;
@@ -727,7 +793,9 @@ public class HelloController extends GameApplication {
             FXGL.set("player2Name", gameState.getPlayer2Name());
             FXGL.set("player1Score", gameState.getPlayer1Score());
             FXGL.set("player2Score", gameState.getPlayer2Score());
-            FXGL.set("currentMap", gameState.getMap());
+            MapManager.getInstance().setCurrentMap(gameState.getMap());
+            //FXGL.set("currentMap", gameState.getMap());
+            FXGL.set("currentLevel",gameState.getCurrentLevel());
 
             //restore players/characters positions
             x1 = y1 = x2 = y2 = 0;
@@ -756,20 +824,22 @@ public class HelloController extends GameApplication {
 //            updateHealthBar(gameState.getPlayer1Health());
 //            updateHealthBarPlayer2(gameState.getPlayer2Health());
 
-            for (int i = 0; i < p1Score; i++) {
-                addStar(p1Star);
-            }
-            for (int i = 0; i < p2Score; i++) {
-                addStar(p2Star);
-            }
 
+            p1Score = gameState.getPlayer1Score();
+            p2Score = gameState.getPlayer2Score();
 
-            // Optionally restore timer
-//            matchTimer.stop();
-//            FXGL.getGameTimer().runOnceAfter(() -> {
-//                matchTimer.setTimeLeft(gameState.getTimeLeft());
-//                matchTimer.resume();
-//            }, Duration.seconds(1));
+            if (matchTimer != null) {
+                matchTimer.pause(); // stop updates during restore
+
+                FXGL.getGameTimer().runOnceAfter(() -> {
+                    matchTimer.setTimeLeft(gameState.getTimeLeft());
+                    // Ensure it's running
+                    if (matchTimer.getIsPaused().get()) {
+                        matchTimer.resume();
+                    }
+                    matchTimer.start(); // <- KEY FIX: starts the thread if it wasn't running
+                }, Duration.seconds(1));
+            }
 
             // Debug output
             System.out.println("Game State Loaded:");
