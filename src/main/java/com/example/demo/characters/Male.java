@@ -20,7 +20,7 @@ public class Male extends CharacterComponent {
                 5, 825 / 5, 192, Duration.seconds(1),
                 0, 4);
 
-        animEnhancedAttack = new AnimationChannel(FXGL.getAssetLoader().loadImage("male/male_attack.png"),
+        animEnhancedAttack = new AnimationChannel(FXGL.getAssetLoader().loadImage("male/male_attack_enhanced.png"),
                 8, 1320 / 8, 192, Duration.seconds(1),
                 0, 7);
 

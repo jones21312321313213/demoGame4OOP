@@ -183,8 +183,17 @@ public class CustomMainMenu extends FXGLMenu {
 
 
     private void loadFallbackImage() {
-        // Fallback to an image if video is not found after retries
-        System.out.println("Loading fallback image...");
-        // Add your fallback image code here
+        try {
+            URL imageUrl = getClass().getResource("/assets/textures/backgroundImage_fallback.png");
+            javafx.scene.image.Image fallbackImage = new javafx.scene.image.Image(imageUrl.toExternalForm());
+            javafx.scene.image.ImageView imageView = new javafx.scene.image.ImageView(fallbackImage);
+            imageView.setFitWidth(FXGL.getAppWidth());
+            imageView.setFitHeight(FXGL.getAppHeight());
+            imageView.setPreserveRatio(false);
+            getContentRoot().getChildren().add(imageView);
+        } catch (NullPointerException | IllegalArgumentException e) {
+            System.err.println("Failed to load fallback image: " + e.getMessage());
+        }
     }
+
 }

@@ -534,7 +534,8 @@ package com.example.demo;
         private void showRoundWinScreen(GameEntityType deadPlayerType) {
             RoundStateManager.getInstance().setStartOfRound(true);
             FXGL.getGameScene().clearUINodes();
-    
+            matchTimer.pause();
+            matchTimer.reset();  // Add this line
             // Update stars display before showing the win screen
             p1Star.getChildren().clear();
             p2Star.getChildren().clear();
@@ -659,7 +660,10 @@ package com.example.demo;
             P2Ult = false;
             isUltAvailableForP1 = false;
             isUltAvailableForP2 = false;
-    
+
+            matchTimer.reset();
+            matchTime = 103;
+            matchTimerText.setText(String.valueOf(matchTime));
             // Clear any saved state
             gameStateList.clear();
             File file = new File("savedstates.txt");
@@ -672,6 +676,7 @@ package com.example.demo;
             if (p2Star != null) p2Star.getChildren().clear();
     
             FXGL.getGameController().resumeEngine();
+            matchTimer.start();
             FXGL.getGameController().startNewGame();
         }
     

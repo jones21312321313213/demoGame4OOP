@@ -11,6 +11,8 @@ import com.almasb.fxgl.texture.AnimatedTexture;
 import com.almasb.fxgl.texture.AnimationChannel;
 import com.example.demo.Factory.CharacterFactory;
 import com.example.demo.listeners.GameEntityType;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
 public class PlayerControl2 extends Component {
@@ -66,58 +68,26 @@ public class PlayerControl2 extends Component {
 
         if (punching) {
             punchTimer -= tpf;
-
-            if (!damageApplied) {
-                Entity player1 = FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER).get(0);
-
-                if (getEntity().getBoundingBoxComponent().isCollidingWith(player1.getBoundingBoxComponent())) {
-                    player1.getComponent(HealthComponent.class).takeDamage(10);
-                    System.out.println("Player 1 took damage! " + player1.getComponent(HealthComponent.class).getHealth());
-                    damageApplied = true;
-                }
-            }
-
             if (punchTimer <= 0) {
                 punching = false;
                 texture.loopAnimationChannel(animIdle);
             } else {
-                return; // Don't change animation while punching
+                return;
             }
         }
 
         if (enhancedPunching) {
             enhancedPunchTimer -= tpf;
-
-            if (!damageApplied) {
-                Entity player1 = FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER).get(0);
-
-                if (getEntity().getBoundingBoxComponent().isCollidingWith(player1.getBoundingBoxComponent())) {
-                    player1.getComponent(HealthComponent.class).takeDamage(enhancedPunchDamage);
-                    System.out.println("Player 1 took " + enhancedPunchDamage + " damage! Remaining health: "
-                            + player1.getComponent(HealthComponent.class).getHealth());
-                    damageApplied = true;
-                }
-            }
-
             if (enhancedPunchTimer <= 0) {
                 enhancedPunching = false;
-                texture.loopAnimationChannel(animHit);
+                texture.loopAnimationChannel(animIdle);
             } else {
                 return;
             }
         }
+
         if (ultActive) {
             ultTimer -= tpf;
-            if (!damageApplied) {
-                Entity player1 = FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER).get(0);
-
-                if (getEntity().getBoundingBoxComponent().isCollidingWith(player1.getBoundingBoxComponent())) {
-                    player1.getComponent(HealthComponent.class).takeDamage(20);
-                    System.out.println("Player 1 took 20 damage! Remaining health: "
-                            + player1.getComponent(HealthComponent.class).getHealth());
-                    damageApplied = true;
-                }
-            }
             if (ultTimer <= 0) {
                 ultActive = false;
                 texture.loopAnimationChannel(animIdle);
@@ -125,6 +95,7 @@ public class PlayerControl2 extends Component {
                 return;
             }
         }
+
         if (!isOnGround()) {
             if (!texture.getAnimationChannel().equals(animJump)) {
                 texture.loopAnimationChannel(animJump);
@@ -175,14 +146,15 @@ public class PlayerControl2 extends Component {
     }
 
     public void P2left() {
-        texture.setScaleX(1);// flips the view of the entity
+        // For Player 2, left movement should face left (scaleX positive)
+        texture.setScaleX(1); // Face left
         physics.setVelocityX(-100);
         texture.loopAnimationChannel(animWalk);
-
     }
 
     public void P2right() {
-        texture.setScaleX(-1);// flips the view of the entity
+        // For Player 2, right movement should face right (scaleX negative)
+        texture.setScaleX(-1); // Face right
         physics.setVelocityX(100);
         texture.loopAnimationChannel(animWalk);
     }
@@ -193,8 +165,8 @@ public class PlayerControl2 extends Component {
             punchTimer = punchDuration.toSeconds();
             damageApplied = false;
             texture.playAnimationChannel(animPunch);
-            showHitboxEffect();
-            spawnHitbox(10, Duration.seconds(0.3));
+            spawnHitbox(10, Duration.seconds(0.3),AttackType.NORMAL);
+            showHitboxEffect(AttackType.NORMAL);
         }
     }
     public void P2enhancedPunch() {
@@ -204,6 +176,8 @@ public class PlayerControl2 extends Component {
             damageApplied = false;
             System.out.println("Enhanced Punch Triggered!");
             texture.playAnimationChannel(animEnhancedAttack);
+            spawnHitbox(10, Duration.seconds(0.3),AttackType.ENHANCED);
+            showHitboxEffect(AttackType.ENHANCED);
         }
     }
 
@@ -211,7 +185,6 @@ public class PlayerControl2 extends Component {
         if (ultActive) {
             return;
         }
-
         System.out.println("Ult Attack Triggered!");
 
         punching = false;
@@ -222,46 +195,89 @@ public class PlayerControl2 extends Component {
         ultActive = true;
         ultTimer = ultDuration;
         damageApplied = false;
+        spawnHitbox(10, Duration.seconds(0.3),AttackType.ULTIMATE);
+        showHitboxEffect(AttackType.ULTIMATE);
     }
 
-    private void spawnHitbox(int damage, Duration duration) {
-        double reach = 1000; // Attack range
-        double boxWidth = reach;
-        double boxHeight = 60;
+    private void spawnHitbox(int damage, Duration duration, AttackType type) {
+        // Attack dimensions based on type
+        double reach, boxHeight;
+        switch (type) {
+            case ULTIMATE:
+                reach = 250;
+                boxHeight = 60;
+                break;
+            case ENHANCED:
+                reach = 180;
+                boxHeight = 50;
+                break;
+            default: // NORMAL
+                reach = 120;
+                boxHeight = 40;
+        }
 
-        // ✅ Fix direction logic based on facing direction
-        boolean facingRight = texture.getScaleX() < 0;
-        double offsetX = facingRight ? 0 : -boxWidth;
+        // For Player 2, we need to invert the facing direction check
+        boolean facingRight = texture.getScaleX() < 0; // Negative scale means facing right
 
-        // Create the hitbox entity at the appropriate position
+        // Position calculation
+        double hitboxX;
+        if (facingRight) {
+            // Right-facing: hitbox extends to the right
+            hitboxX = entity.getX() + 115 + 15;
+        } else {
+            // Left-facing: hitbox extends to the left
+            hitboxX = entity.getX() + 15 - reach;
+        }
+
         Entity hitbox = FXGL.entityBuilder()
                 .type(GameEntityType.HITBOX)
-                .at(entity.getX() + offsetX, entity.getY() + 20)
-                .bbox(new HitBox(BoundingShape.box(boxWidth, boxHeight)))
+                .at(hitboxX, entity.getY() + 10)
+                .bbox(new HitBox(BoundingShape.box(reach, boxHeight)))
                 .collidable()
-                .with(new HitboxControl(damage, duration, GameEntityType.PLAYER2))  // Adjust for the correct entity type
+                .with(new HitboxControl(damage, GameEntityType.PLAYER2,type))
                 .buildAndAttach();
     }
 
+    private void showHitboxEffect(AttackType type) {
+        double reach, boxHeight;
+        switch (type) {
+            case ULTIMATE:
+                reach = 250;
+                boxHeight = 60;
+                break;
+            case ENHANCED:
+                reach = 180;
+                boxHeight = 50;
+                break;
+            default:
+                reach = 120;
+                boxHeight = 40;
+        }
 
-    private void showHitboxEffect() {
-        javafx.scene.shape.Rectangle box = new javafx.scene.shape.Rectangle(1000, 40);
-        box.setFill(javafx.scene.paint.Color.RED.deriveColor(1, 1, 1, 0.4));  // Light red color with transparency
-        box.setArcWidth(10);
-        box.setArcHeight(10);
+        // For Player 2, we need to invert the facing direction check
+        boolean facingRight = texture.getScaleX() < 0; // Negative scale means facing right
 
-        // ✅ Fix visual direction logic
-        double offsetX = texture.getScaleX() < 0 ? 0 : -1000;  // Show hitbox ahead if facing right, behind if facing left
-        double screenX = entity.getX() + offsetX;
-        double screenY = entity.getY() + 20;  // Position it slightly below the character
+        Rectangle box = new Rectangle(reach, boxHeight);
+        box.setFill(Color.RED.deriveColor(1, 1, 1, type == AttackType.ULTIMATE ? 0.5 : 0.4));
 
-        box.setLayoutX(screenX);
-        box.setLayoutY(screenY);
+        if (type == AttackType.ULTIMATE) {
+            box.setStroke(Color.GOLD);
+            box.setStrokeWidth(2);
+            box.setArcWidth(15);
+            box.setArcHeight(15);
+        }
 
-        FXGL.getGameScene().addUINode(box);  // Add the visual hitbox to the scene
+        double hitboxX = facingRight
+                ? entity.getX() + 115 + 15
+                : entity.getX() + 15 - reach;
 
-        // Remove after a short duration
-        FXGL.getGameTimer().runOnceAfter(() -> FXGL.getGameScene().removeUINode(box), Duration.seconds(0.3));
+        box.setLayoutX(hitboxX);
+        box.setLayoutY(entity.getY() + 10);
+
+        FXGL.getGameScene().addUINode(box);
+        FXGL.getGameTimer().runOnceAfter(() -> FXGL.getGameScene().removeUINode(box),
+                Duration.seconds(type == AttackType.ULTIMATE ? 0.4 :
+                        type == AttackType.ENHANCED ? 0.35 : 0.3));
     }
 
     public void playHitAnimation() {

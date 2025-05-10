@@ -9,13 +9,13 @@ public class Female extends CharacterComponent {
     private AnimationChannel animIdle, animWalk, animJump, animPunch, animEnhancedAttack, animUlt, animHit;
     public Female(){
         animIdle = new AnimationChannel(FXGL.getAssetLoader().loadImage("female/female_idle.png"),
-                7,1155/7,192, Duration.seconds(1),
+                7,1157/7,192, Duration.seconds(1),
                 0,6);
 
         animWalk = new AnimationChannel(FXGL.getAssetLoader().loadImage("female/female_walk.png"),
                 8,1320/8,192, Duration.seconds(1),
                 0,7);
-        animEnhancedAttack =  new AnimationChannel(FXGL.getAssetLoader().loadImage("female/attack_enhanced.png"),
+        animEnhancedAttack =  new AnimationChannel(FXGL.getAssetLoader().loadImage("female/female_attack_enhanced.png"),
                 8,1320/8,195, Duration.seconds(1),
                 0,7);
 

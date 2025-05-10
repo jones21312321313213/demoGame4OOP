@@ -11,6 +11,7 @@ import javafx.util.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MatchTimer implements Runnable {
+    private final int initialTime;
     private int timeLeft;
     private final Text timerDisplay;
     private final Runnable onTimerEnd;
@@ -20,6 +21,7 @@ public class MatchTimer implements Runnable {
     private final Object pauseLock = new Object();
 
     public MatchTimer(int startTime, Text timerDisplay, Runnable onTimerEnd) {
+        this.initialTime = startTime;
         this.timeLeft = startTime;
         this.timerDisplay = timerDisplay;
         this.onTimerEnd = onTimerEnd;
@@ -67,6 +69,18 @@ public class MatchTimer implements Runnable {
             timerDisplay.setText(String.valueOf(timeLeft));
             resume();
         });
+    }
+
+    public void reset() {
+        stop();
+        timeLeft = initialTime;  // Use stored initial time
+        isPaused.set(false);
+        shouldStop.set(false);
+        Platform.runLater(() -> {
+            timerDisplay.setText(String.valueOf(timeLeft));
+            timerDisplay.setFill(Color.BLACK);
+        });
+        // Reset animation as before...
     }
 
     public AtomicBoolean getIsPaused(){
