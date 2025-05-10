@@ -78,7 +78,7 @@ public class SimpleFactory implements EntityFactory {
                 .with("id", "player2")
                 .with(new HealthComponent(100))
                 .with(physics)
-                .with(new PlayerControl2("character2"))
+                .with(new PlayerControl2("female"))
                 .viewWithBBox(outline)
                 .build();
     }

@@ -41,6 +41,11 @@ public class PlayerControl extends Component {
     private double ultDuration = 2;
     private double ultTimer = 0;
 
+    private boolean isHit = false;
+    private double hitTimer = 0;
+    private final double hitDuration = 0.6; // duration in seconds (adjust to match hit animation)
+
+
     private AnimationChannel attackAnim(String path){
         AnimationChannel test = new AnimationChannel(FXGL.getAssetLoader().loadImage("fighter_jump.png"),
                 5,825/5,192, Duration.seconds(1),
@@ -49,7 +54,7 @@ public class PlayerControl extends Component {
     }
 
     public PlayerControl(){
-        CharacterFactory c = new CharacterFactory("character3");
+        CharacterFactory c = new CharacterFactory("elite");
         animIdle = c.getAnimIdle();
         animWalk = c.getAnimWalk();
         animJump = c.getAnimJump();
@@ -61,9 +66,17 @@ public class PlayerControl extends Component {
     }
     @Override
     public void onUpdate(double tpf) { // tpf is the time passed since the last frame update
+        if (isHit) {
+            hitTimer -= tpf;
+            if (hitTimer <= 0) {
+                isHit = false;
+                texture.loopAnimationChannel(animIdle);
+            }
+            return; // skip the rest of update while hit anim is playing
+        }
+
         if (punching) {
             punchTimer -= tpf;
-
             if (!damageApplied) {
                 Entity player2 = FXGL.getGameWorld().getEntitiesByType(GameEntityType.PLAYER2).get(0);
 
@@ -73,7 +86,6 @@ public class PlayerControl extends Component {
                     damageApplied = true;
                 }
             }
-
             if (punchTimer <= 0) {
                 punching = false;
                 texture.loopAnimationChannel(animIdle);
@@ -96,7 +108,7 @@ public class PlayerControl extends Component {
             }
             if (enhancedPunchTimer <= 0) {
                 enhancedPunching = false;
-                texture.loopAnimationChannel(animIdle);
+                texture.loopAnimationChannel(animEnhancedAttack);
             } else {
                 return;
             }
@@ -160,7 +172,6 @@ public class PlayerControl extends Component {
 
 
     public void up() {
-
         if (isOnGround()) {
             physics.setVelocityY(-300);
             texture.loopAnimationChannel(animJump);
@@ -173,14 +184,14 @@ public class PlayerControl extends Component {
 
     public void left() {
         texture.setScaleX(-1);
-        physics.setVelocityX(-100);
+        physics.setVelocityX(-140);
         texture.loopAnimationChannel(animWalk);
 
     }
 
     public void right() {
         texture.setScaleX(1);
-        physics.setVelocityX(100);
+        physics.setVelocityX(140);
         texture.loopAnimationChannel(animWalk);
 
     }
@@ -211,9 +222,8 @@ public class PlayerControl extends Component {
         if (ultActive) {
             return;
         }
-
+        //4 debugging
         System.out.println("Ult Attack Triggered!");
-
         punching = false;
         enhancedPunching = false;
         texture.stop();
@@ -266,8 +276,13 @@ public class PlayerControl extends Component {
     }
 
 
-
     public void playHitAnimation() {
-        texture.playAnimationChannel(animHit);
+        if (!isHit) {
+            isHit = true;
+            hitTimer = hitDuration;
+            texture.playAnimationChannel(animHit);
+            physics.setVelocityX(0); // optional: stop movement during hit
+        }
     }
+
 }

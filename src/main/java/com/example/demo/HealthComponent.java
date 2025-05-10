@@ -29,6 +29,9 @@ public class HealthComponent extends Component {
         if (entity.hasComponent(PlayerControl.class)) {
             entity.getComponent(PlayerControl.class).playHitAnimation();
         }
+        if (entity.hasComponent(PlayerControl2.class)) {
+            entity.getComponent(PlayerControl2.class).playHitAnimation();
+        }
 
         if (health <= 0) {
             health = 0;

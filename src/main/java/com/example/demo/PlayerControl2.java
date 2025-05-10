@@ -36,6 +36,12 @@ public class PlayerControl2 extends Component {
     private double ultDuration = 2;
     private double ultTimer = 0;
 
+
+    private boolean isHit = false;
+    private double hitTimer = 0;
+    private final double hitDuration = 0.6; // duration in seconds (adjust to match hit animation)
+
+
     public PlayerControl2(String charcter){
         CharacterFactory c = new CharacterFactory(charcter);
         animIdle = c.getAnimIdle();
@@ -49,6 +55,15 @@ public class PlayerControl2 extends Component {
     }
     @Override
     public void onUpdate(double tpf) {
+        if (isHit) {
+            hitTimer -= tpf;
+            if (hitTimer <= 0) {
+                isHit = false;
+                texture.loopAnimationChannel(animIdle);
+            }
+            return; // skip the rest of update while hit anim is playing
+        }
+
         if (punching) {
             punchTimer -= tpf;
 
@@ -64,6 +79,7 @@ public class PlayerControl2 extends Component {
 
             if (punchTimer <= 0) {
                 punching = false;
+                texture.loopAnimationChannel(animIdle);
             } else {
                 return; // Don't change animation while punching
             }
@@ -85,7 +101,7 @@ public class PlayerControl2 extends Component {
 
             if (enhancedPunchTimer <= 0) {
                 enhancedPunching = false;
-                texture.loopAnimationChannel(animIdle);
+                texture.loopAnimationChannel(animHit);
             } else {
                 return;
             }
@@ -246,6 +262,15 @@ public class PlayerControl2 extends Component {
 
         // Remove after a short duration
         FXGL.getGameTimer().runOnceAfter(() -> FXGL.getGameScene().removeUINode(box), Duration.seconds(0.3));
+    }
+
+    public void playHitAnimation() {
+        if (!isHit) {
+            isHit = true;
+            hitTimer = hitDuration;
+            texture.playAnimationChannel(animHit);
+            physics.setVelocityX(0); // optional: stop movement during hit
+        }
     }
 
 }

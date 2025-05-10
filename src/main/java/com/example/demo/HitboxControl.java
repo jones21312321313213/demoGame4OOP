@@ -30,7 +30,6 @@ public class HitboxControl extends Component {
             entity.removeFromWorld();
             return;
         }
-
         GameEntityType targetType = (ownerType == GameEntityType.PLAYER)
                 ? GameEntityType.PLAYER2
                 : GameEntityType.PLAYER;
